@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>คู่มือสูตรอาหารสำหรับพนักงาน</title>
+    <title>คู่มือสูตรอาหารสำหรับพนักงาน (ซิงค์คลาวด์)</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
     <style>
         :root {
             --primary: #FF6B6B;
@@ -21,12 +25,12 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
-            padding: 15px; /* ลดขอบสำหรับมือถือ */
+            padding: 15px;
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
         }
 
-        .container { max-width: 600px; margin: 0 auto; } /* เน้นหน้าแคบแบบมือถือ */
+        .container { max-width: 600px; margin: 0 auto; }
         
         h1 { font-size: 22px; color: var(--primary); margin: 10px 0 20px 0; text-align: center; }
         h2 { font-size: 18px; color: var(--primary); margin-top: 0; }
@@ -39,21 +43,12 @@
             margin-bottom: 20px;
             border-left: 4px solid var(--primary);
         }
-        .must-know-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .must-know-item {
-            font-size: 15px;
-            background: rgba(255,255,255,0.6);
-            padding: 10px;
-            border-radius: 8px;
-        }
+        .must-know-grid { display: flex; flex-direction: column; gap: 12px; }
+        .must-know-item { font-size: 15px; background: rgba(255,255,255,0.6); padding: 10px; border-radius: 8px; }
         .must-know-item strong { color: #D35400; display: block; margin-bottom: 4px; }
         .must-know-item ul { margin: 0; padding-left: 20px; }
 
-        /* Top Bar - ปรับให้เรียงลงมาสำหรับมือถือ */
+        /* Top Bar */
         .top-bar {
             display: flex;
             flex-direction: column;
@@ -71,10 +66,9 @@
             padding: 14px 20px;
             border: 2px solid #E2E8F0;
             border-radius: 30px;
-            font-size: 16px; /* 16px ป้องกัน iOS ซูม */
+            font-size: 16px;
             outline: none;
             box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-            transition: 0.3s;
         }
         .search-bar:focus { border-color: var(--primary); }
 
@@ -93,113 +87,51 @@
         .btn-add:active { background-color: var(--primary-dark); transform: scale(0.98); }
 
         /* Menu Cards */
-        .menu-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
-            position: relative;
-        }
-        
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 12px;
-            gap: 10px;
-        }
-        
-        .card-title { 
-            font-size: 18px; 
-            font-weight: bold; 
-            color: #2D3436; 
-            margin: 0;
-            line-height: 1.3;
-        }
+        .menu-grid { display: flex; flex-direction: column; gap: 15px; }
+        .card { background: var(--card-bg); border-radius: 16px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); position: relative; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 10px; }
+        .card-title { font-size: 18px; font-weight: bold; color: #2D3436; margin: 0; line-height: 1.3; }
         
         .delete-btn { 
-            color: #FF7675; 
-            background: #FFEAA7;
-            border: none; 
-            padding: 6px 12px;
-            border-radius: 15px;
-            font-size: 13px;
-            font-weight: bold;
+            color: #FF7675; background: #FFEAA7; border: none; padding: 6px 12px; border-radius: 15px; font-size: 13px; font-weight: bold; cursor: pointer;
         }
 
-        /* Tags - ให้ห่อตัวอัตโนมัติบนจอเล็ก */
+        /* Tags */
         .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 15px; }
-        .tag {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: bold;
-            display: inline-flex;
-            align-items: center;
-        }
+        .tag { padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; display: inline-flex; align-items: center; }
         .tag-oil { background-color: #FFF3CD; color: #856404; }
         .tag-butter-solid { background-color: #FFE8A1; color: #D35400; }
         .tag-butter-melt { background-color: #FFEAA7; color: #E67E22; }
         .tag-teppan { background-color: #DFE6E9; color: #2D3436; }
         .tag-pan { background-color: #B2BEC3; color: #2D3436; }
-        .tag-cut { background-color: #FFDFDF; color: #D63031; width: 100%; margin-top: 4px; } /* วิธีหั่นเน้นเต็มบรรทัด */
+        .tag-cut { background-color: #FFDFDF; color: #D63031; width: 100%; margin-top: 4px; }
 
         .method-text { 
-            font-size: 16px; 
-            white-space: pre-line; 
-            color: #4A4A4A; 
-            background: #F8F9FA;
-            padding: 12px;
-            border-radius: 8px;
-            border-left: 3px solid #74B9FF;
+            font-size: 16px; white-space: pre-line; color: #4A4A4A; background: #F8F9FA; padding: 12px; border-radius: 8px; border-left: 3px solid #74B9FF;
         }
 
-        /* Modal for Mobile */
+        /* Modal */
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); justify-content: center; align-items: flex-end; z-index: 1000;
         }
         .modal-content {
-            background: white; 
-            width: 100%; 
-            max-height: 90vh; 
-            padding: 25px 20px; 
-            border-radius: 20px 20px 0 0; /* โค้งแค่ด้านบนแบบแอปมือถือ */
-            overflow-y: auto;
-            animation: slideUp 0.3s ease-out;
+            background: white; width: 100%; max-height: 90vh; padding: 25px 20px; border-radius: 20px 20px 0 0; overflow-y: auto; animation: slideUp 0.3s ease-out;
         }
-        
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-        }
-
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 15px; }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%; padding: 12px; border: 1px solid #DFE6E9; border-radius: 10px; font-size: 16px;
-            background: #F8F9FA;
-        }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-            outline: none; border-color: var(--primary); background: white;
-        }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #DFE6E9; border-radius: 10px; font-size: 16px; background: #F8F9FA; }
         
         .modal-actions { display: flex; gap: 10px; margin-top: 25px; }
         .btn-cancel { flex: 1; background: #DFE6E9; color: #2D3436; border: none; padding: 14px; border-radius: 12px; font-weight: bold; font-size: 16px; }
         .btn-save { flex: 2; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; font-size: 16px; }
-
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🍳 สูตรอาหาร (ฉบับพนักงาน)</h1>
+    <h1>🍳 สูตรอาหาร Cloud Sync (พนักงานทุกคน)</h1>
 
     <div class="top-bar">
         <input type="text" id="searchInput" class="search-bar" placeholder="🔍 ค้นหาเมนู หรือ ส่วนผสม..." onkeyup="renderMenus()">
@@ -209,41 +141,23 @@
     <div class="must-know">
         <h2>📌 สิ่งที่ต้องรู้ (พื้นฐาน)</h2>
         <div class="must-know-grid">
-            <div class="must-know-item">
-                <strong>🌶️ ซอส HOT:</strong> มันฝรั่ง, แครอท, ไข่ไก่, นม, แป้งสาลี, ถั่วลิสง, ผงกระเทียม, ถั่วเหลือง, หอมหัวใหญ่
-            </div>
-            <div class="must-know-item">
-                <strong>🍏 ซอส MILD:</strong> มันฝรั่ง, แครอท, ไข่ไก่, นม, แป้งสาลี, ถั่วลิสง, ผงกระเทียม, ถั่วเหลือง, หอมหัวใหญ่, แอปเปิ้ล, กล้วย, น้ำผึ้ง
-            </div>
-            <div class="must-know-item">
-                <strong>🍚 ข้าว:</strong> ตราฟูจิฮิคาริ (ซาซานิชิกิ) ปลูกเชียงราย
-            </div>
-            <div class="must-know-item">
-                <strong>🥩 ชิ้นส่วนเนื้อสัตว์:</strong>
-                <ul>
-                    <li>หมูทอด = สันนอกไม่ติดมัน</li>
-                    <li>คุโรบุตะ = สันคอ</li>
-                    <li>ไก่ทุกเมนู = สะโพก</li>
-                    <li>เกี๊ยวซ่า = ไก่</li>
-                    <li>เนื้อเต๋า = สันใน</li>
-                    <li>เนื้อตุ๋น = เนื้อติดมัน</li>
-                </ul>
-            </div>
+            <div class="must-know-item"><strong>🌶️ ซอส HOT:</strong> มันฝรั่ง, แครอท, ไข่ไก่, นม, แป้งสาลี, ถั่วลิสง, ผงกระเทียม, ถั่วเหลือง, หอมหัวใหญ่</div>
+            <div class="must-know-item"><strong>🍏 ซอส MILD:</strong> มันฝรั่ง, แครอท, ไข่ไก่, นม, แป้งสาลี, ถั่วลิสง, ผงกระเทียม, ถั่วเหลือง, หอมหัวใหญ่, แอปเปิ้ล, กล้วย, น้ำผึ้ง</div>
+            <div class="must-know-item"><strong>🍚 ข้าว:</strong> ตราฟูจิฮิคาริ (ซาซานิชิกิ) ปลูกเชียงราย</div>
+            <div class="must-know-item"><strong>🥩 ชิ้นส่วนเนื้อสัตว์:</strong> หมูทอด=สันนอกไม่ติดมัน | คุโรบุตะ=สันคอ | ไก่=สะโพก | เกี๊ยวซ่า=ไก่ | เนื้อเต๋า=สันใน | เนื้อตุ๋น=เนื้อติดมัน</div>
         </div>
     </div>
 
     <div class="menu-grid" id="menuGrid">
-        </div>
+        <p style="text-align: center; color: var(--text-muted);">⏳ กำลังโหลดข้อมูลสูตรอาหาร...</p>
+    </div>
 </div>
 
 <div class="modal" id="menuModal">
     <div class="modal-content">
         <h2 style="margin-top:0;">📝 เพิ่มเมนูใหม่</h2>
         <form id="menuForm">
-            <div class="form-group">
-                <label>ชื่อเมนู</label>
-                <input type="text" id="menuName" required>
-            </div>
+            <div class="form-group"><label>ชื่อเมนู</label><input type="text" id="menuName" required></div>
             <div class="form-group">
                 <label>ประเภทไขมัน</label>
                 <select id="fatType">
@@ -262,75 +176,66 @@
                     <option value="both">เตาเทปัน + ปรุงแยกกระทะเล็ก</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>วิธีหั่น (เช่น "หั่น 4 ครั้ง ได้ 5 ชิ้น")</label>
-                <input type="text" id="cutMethod" placeholder="เว้นว่างได้ถ้าไม่มี">
-            </div>
-            <div class="form-group">
-                <label>วิธีทำ / ส่วนผสม (ขึ้นบรรทัดใหม่ได้)</label>
-                <textarea id="instructions" rows="5" required></textarea>
-            </div>
+            <div class="form-group"><label>วิธีหั่น (เช่น "หั่น 4 ครั้ง ได้ 5 ชิ้น")</label><input type="text" id="cutMethod" placeholder="เว้นว่างได้"></div>
+            <div class="form-group"><label>วิธีทำ / ส่วนผสม</label><textarea id="instructions" rows="5" required></textarea></div>
             <div class="modal-actions">
                 <button type="button" class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
-                <button type="button" class="btn-save" onclick="saveMenu()">บันทึก</button>
+                <button type="button" class="btn-save" onclick="saveMenu()">บันทึกขึ้นระบบ</button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
+    // ==========================================
+    // ⚙️ ตั้งค่าเชื่อมต่อ FIREBASE (ใส่ให้เรียบร้อยแล้ว)
+    // ==========================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyAkLEk_ihyEpqcunK1pVZ1O7L5GCMU2WbU",
+        authDomain: "coco-menu-7c395.firebaseapp.com",
+        databaseURL: "https://coco-menu-7c395-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "coco-menu-7c395",
+        storageBucket: "coco-menu-7c395.firebasestorage.app",
+        messagingSenderId: "690988825597",
+        appId: "1:690988825597:web:eab946a1304eb0ab113794"
+    };
+    
+    // เริ่มระบบ Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const menuRef = database.ref('restaurant_menus');
+
+    // สูตรอาหารเริ่มต้นกรณีฐานข้อมูลว่างเปล่า
     const defaultMenus = [
-        {
-            id: 1, name: "สเต็กไก่พริกไทยดำ", fatType: "oil", panType: "both", cutMethod: "หั่น 4 ครั้ง ให้ได้ 5 ชิ้น",
-            instructions: "- เวฟไมโครเวฟเลข 2 นำแป้งมันมาลงด้านหนังไก่\n- ใส่น้ำมัน 10g ลงบนเตาเทปัน\n- ลงด้านหนังไก่ 3 นาที ด้านท้อง(เนื้อ) 1 นาที\n- เสร็จแล้วทาซอสพริกไทยดำบนกระทะเล็ก 5g"
-        },
-        {
-            id: 2, name: "สเต็กเนื้อเต๋า", fatType: "oil", panType: "both", cutMethod: "",
-            instructions: "- วอร์มน้ำเปล่า 800CC + น้ำร้อน 200CC (5 นาที)\n- นำมาปรุงใส่จาน: พริกไทยดำ 0.5g, พริกไทยป่น 0.2g\n- ใส่น้ำมัน 10g ลงเตาเทปัน ทอดข้างละ 30 วิ (ทุกด้าน) ผัดต่อ 30 วิ\n- นำกระทะเล็กมาใส่เนย 10g + โชยุ 5g"
-        },
-        {
-            id: 3, name: "สเต็กปลากระพง", fatType: "oil", panType: "teppan", cutMethod: "",
-            instructions: "- ใส่น้ำมัน เอาด้านหนังลงก่อน ข้างละ 1 นาที\n- ใส่น้ำเปล่า 5g รอบๆสเต็กปลา จับเวลา 15 วิ\n- ปรุง: ใส่เนย 10g, โชยุ 5g, ไวน์แดง 5g ราดบนตัวปลา\n- โรยหอมไทย 0.2g"
-        },
-        {
-            id: 4, name: "คุโรบุตะ", fatType: "oil", panType: "both", cutMethod: "หั่น 5 ครั้ง ให้ได้ 6 ชิ้น",
-            instructions: "- เวฟไมโครเวฟเลข 2\n- ใส่น้ำมันลงทอดข้างละ 1 นาที\n- ปรุงแยกกระทะเล็ก: เนย 10g, โชยุ 5g, ไวน์แดง 5g"
-        },
-        {
-            id: 5, name: "แซลม่อนย่างเนย", fatType: "oil", panType: "both", cutMethod: "",
-            instructions: "- ซับปลา ปรุงรส 2 ด้าน (พริกไทยดำ+เกลือ+พริกไทยป่น)\n- ใส่น้ำมัน 10g ลงเตาเทปัน ข้างละ 2 นาที (หนังลงก่อน)\n- นำปลามาใส่กระทะเล็ก ปรุงด้วยเนย 10g, โชยุ 5g"
-        },
-        {
-            id: 6, name: "แฮมเบิร์กเนื้อ", fatType: "butter-solid", panType: "teppan", cutMethod: "",
-            instructions: "- ใส่เนยทำบนกระทะเทปัน"
-        },
-        {
-            id: 7, name: "แฮมเบิร์กหมู", fatType: "butter-solid", panType: "small-pan", cutMethod: "",
-            instructions: "- ใส่เนยทำบนกระทะเล็ก"
-        },
-        {
-            id: 8, name: "ครีมเห็ด 1 ที่", fatType: "butter-solid", panType: "both", cutMethod: "",
-            instructions: "- เห็ดเต๋า 45g, วิปครีม 5g, โชยุ 5g, เนย 10g (*ตามจำนวนที่)\n- นำเห็ดเต๋าไปผัดเตาเทปันใส่เนย\n- นำเห็ดที่ผัดไปผสมกับครีมที่ทำไว้"
-        },
-        {
-            id: 9, name: "สปาเห็ด", fatType: "butter-solid", panType: "small-pan", cutMethod: "",
-            instructions: "- อายิโนะ 50g, โชยุ 10g, กระเทียมเจียว 2g, เห็ดรวม 50g\n- วิธีทำ: ใส่เนยก้อน 10g, ใส่น้ำที่ผสม, ใส่เห็ด, ใส่เส้น"
-        },
-        {
-            id: 10, name: "สปาเบคอน", fatType: "butter-solid", panType: "small-pan", cutMethod: "",
-            instructions: "- อายิโนะ 50g, ชิราทากิ 5g, คนอร์ 5g\n- วิธีทำ: ใส่เนยก้อน 5g, เบคอน 30g, ใส่น้ำที่ผสม, กระเทียม 5g, ใส่เส้น, โหระพาสับ 5g (แบ่งครึ่ง), พริกแห้ง 5g (แบ่งครึ่ง)\n- ม้วนเส้นใส่จาน แต่งด้วยพริกแห้งและโหระพาที่เหลือ"
-        }
+        { name: "สเต็กไก่พริกไทยดำ", fatType: "oil", panType: "both", cutMethod: "หั่น 4 ครั้ง ให้ได้ 5 ชิ้น", instructions: "- เวฟไมโครเวฟเลข 2 นำแป้งมันมาลงด้านหนังไก่\n- ใส่น้ำมัน 10g ลงบนเตาเทปัน\n- ลงด้านหนังไก่ 3 นาที ด้านท้อง(เนื้อ) 1 นาที\n- เสร็จแล้วทาซอสพริกไทยดำบนกระทะเล็ก 5g" },
+        { name: "สเต็กเนื้อเต๋า", fatType: "oil", panType: "both", cutMethod: "", instructions: "- วอร์มน้ำเปล่า 800CC + น้ำร้อน 200CC (5 นาที)\n- นำมาปรุงใส่จาน: พริกไทยดำ 0.5g, พริกไทยป่น 0.2g\n- ใส่น้ำมัน 10g ลงเตาเทปัน ทอดข้างละ 30 วิ (ทุกด้าน) ผัดต่อ 30 วิ\n- นำกระทะเล็กมาใส่เนย 10g + โชยุ 5g" },
+        { name: "สเต็กปลากระพง", fatType: "oil", panType: "teppan", cutMethod: "", instructions: "- ใส่น้ำมัน เอาด้านหนังลงก่อน ข้างละ 1 นาที\n- ใส่น้ำเปล่า 5g รอบๆสเต็กปลา จับเวลา 15 วิ\n- ปรุง: ใส่เนย 10g, โชยุ 5g, ไวน์แดง 5g ราดบนตัวปลา\n- โรยหอมไทย 0.2g" },
+        { name: "คุโรบุตะ", fatType: "oil", panType: "both", cutMethod: "หั่น 5 ครั้ง ให้ได้ 6 ชิ้น", instructions: "- เวฟไมโครเวฟเลข 2\n- ใส่น้ำมันลงทอดข้างละ 1 นาที\n- ปรุงแยกกระทะเล็ก: เนย 10g, โชยุ 5g, ไวน์แดง 5g" },
+        { name: "แซลม่อนย่างเนย", fatType: "oil", panType: "both", cutMethod: "", instructions: "- ซับปลา ปรุงรส 2 ด้าน (พริกไทยดำ+เกลือ+พริกไทยป่น)\n- ใส่น้ำมัน 10g ลงเตาเทปัน ข้างละ 2 นาที (หนังลงก่อน)\n- นำปลามาใส่กระทะเล็ก ปรุงด้วยเนย 10g, โชยุ 5g" },
+        { name: "แฮมเบิร์กเนื้อ", fatType: "butter-solid", panType: "teppan", cutMethod: "", instructions: "- ใส่เนยทำบนกระทะเทปัน" },
+        { name: "แฮมเบิร์กหมู", fatType: "butter-solid", panType: "small-pan", cutMethod: "", instructions: "- ใส่เนยทำบนกระทะเล็ก" },
+        { name: "ครีมเห็ด 1 ที่", fatType: "butter-solid", panType: "both", cutMethod: "", instructions: "- เห็ดเต๋า 45g, วิปครีม 5g, โชยุ 5g, เนย 10g (*ตามจำนวนที่)\n- นำเห็ดเต๋าไปผัดเตาเทปันใส่เนย\n- นำเห็ดที่ผัดไปผสมกับครีมที่ทำไว้" },
+        { name: "สปาเห็ด", fatType: "butter-solid", panType: "small-pan", cutMethod: "", instructions: "- อายิโนะ 50g, โชยุ 10g, กระเทียมเจียว 2g, เห็ดรวม 50g\n- วิธีทำ: ใส่เนยก้อน 10g, ใส่น้ำที่ผสม, ใส่เห็ด, ใส่เส้น" },
+        { name: "สปาเบคอน", fatType: "butter-solid", panType: "small-pan", cutMethod: "", instructions: "- อายิโนะ 50g, ชิราทากิ 5g, คนอร์ 5g\n- วิธีทำ: ใส่เนยก้อน 5g, เบคอน 30g, ใส่น้ำที่ผสม, กระเทียม 5g, ใส่เส้น, โหระพาสับ 5g (แบ่งครึ่ง), พริกแห้ง 5g (แบ่งครึ่ง)\n- ม้วนเส้นใส่จาน แต่งด้วยพริกแห้งและโหระพาที่เหลือ" }
     ];
 
-    let menus = JSON.parse(localStorage.getItem('restaurantMenusMobile'));
-    if (!menus) {
-        menus = defaultMenus;
-        saveToLocalStorage();
-    }
+    let globalMenus = [];
 
-    function saveToLocalStorage() {
-        localStorage.setItem('restaurantMenusMobile', JSON.stringify(menus));
-    }
+    // ดึงข้อมูล Realtime จากคลาวด์
+    menuRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        globalMenus = [];
+        
+        if (data) {
+            Object.keys(data).forEach(key => {
+                globalMenus.push({ id: key, ...data[key] });
+            });
+            renderMenus();
+        } else {
+            // หากฐานข้อมูลโล่ง ให้ใส่ค่าตั้งต้นลงไปอัตโนมัติ
+            defaultMenus.forEach(item => menuRef.push(item));
+        }
+    });
 
     function getFatTag(type) {
         if (type === 'oil') return '<span class="tag tag-oil">🛢️ น้ำมัน</span>';
@@ -351,37 +256,34 @@
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
         grid.innerHTML = '';
 
-        const filteredMenus = menus.filter(menu => menu.name.toLowerCase().includes(searchTerm) || menu.instructions.toLowerCase().includes(searchTerm));
+        const filteredMenus = globalMenus.filter(menu => 
+            menu.name.toLowerCase().includes(searchTerm) || 
+            menu.instructions.toLowerCase().includes(searchTerm)
+        );
+
+        if (filteredMenus.length === 0) {
+            grid.innerHTML = '<p style="text-align:center;color:var(--text-muted);">❌ ไม่พบเมนูที่ค้นหา</p>';
+            return;
+        }
 
         filteredMenus.forEach(menu => {
             let cutHtml = menu.cutMethod ? `<span class="tag tag-cut">🔪 ${menu.cutMethod}</span>` : '';
-            
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
                 <div class="card-header">
                     <h3 class="card-title">${menu.name}</h3>
-                    <button class="delete-btn" onclick="deleteMenu(${menu.id})">ลบ ✕</button>
+                    <button class="delete-btn" onclick="deleteMenu('${menu.id}')">ลบ ✕</button>
                 </div>
-                <div class="tags">
-                    ${getFatTag(menu.fatType)}
-                    ${getPanTag(menu.panType)}
-                    ${cutHtml}
-                </div>
+                <div class="tags">${getFatTag(menu.fatType)}${getPanTag(menu.panType)}${cutHtml}</div>
                 <div class="method-text">${menu.instructions}</div>
             `;
             grid.appendChild(card);
         });
     }
 
-    function openModal() {
-        document.getElementById('menuModal').style.display = 'flex';
-        document.getElementById('menuForm').reset();
-    }
-
-    function closeModal() {
-        document.getElementById('menuModal').style.display = 'none';
-    }
+    function openModal() { document.getElementById('menuModal').style.display = 'flex'; document.getElementById('menuForm').reset(); }
+    function closeModal() { document.getElementById('menuModal').style.display = 'none'; }
 
     function saveMenu() {
         const name = document.getElementById('menuName').value;
@@ -390,26 +292,18 @@
         const cutMethod = document.getElementById('cutMethod').value;
         const instructions = document.getElementById('instructions').value;
 
-        if (!name || !instructions) {
-            alert('กรุณากรอกชื่อเมนูและวิธีทำ');
-            return;
-        }
+        if (!name || !instructions) return;
 
-        menus.push({ id: Date.now(), name, fatType, panType, cutMethod, instructions });
-        saveToLocalStorage();
-        renderMenus();
+        // ดันข้อมูลขึ้น Cloud Database
+        menuRef.push({ name, fatType, panType, cutMethod, instructions });
         closeModal();
     }
 
-    function deleteMenu(id) {
-        if (confirm("ต้องการลบเมนูนี้ใช่หรือไม่?")) {
-            menus = menus.filter(menu => menu.id !== id);
-            saveToLocalStorage();
-            renderMenus();
+    function deleteMenu(firebaseId) {
+        if (confirm("ต้องการลบเมนูนี้ออกจากระบบส่วนกลางใช่หรือไม่? (พนักงานคนอื่นจะถูกลบไปด้วย)")) {
+            menuRef.child(firebaseId).remove();
         }
     }
-
-    renderMenus();
 </script>
 </body>
 </html>
