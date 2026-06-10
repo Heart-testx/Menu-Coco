@@ -92,6 +92,10 @@
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 10px; }
         .card-title { font-size: 18px; font-weight: bold; color: #2D3436; margin: 0; line-height: 1.3; }
         
+        .card-buttons { display: flex; gap: 6px; }
+        .edit-btn {
+            color: #1976D2; background: #E3F2FD; border: none; padding: 6px 12px; border-radius: 15px; font-size: 13px; font-weight: bold; cursor: pointer;
+        }
         .delete-btn { 
             color: #FF7675; background: #FFEAA7; border: none; padding: 6px 12px; border-radius: 15px; font-size: 13px; font-weight: bold; cursor: pointer;
         }
@@ -104,6 +108,7 @@
         .tag-butter-melt { background-color: #FFEAA7; color: #E67E22; }
         .tag-teppan { background-color: #DFE6E9; color: #2D3436; }
         .tag-pan { background-color: #B2BEC3; color: #2D3436; }
+        .tag-stir { background-color: #E8F5E9; color: #2E7D32; }
         .tag-cut { background-color: #FFDFDF; color: #D63031; width: 100%; margin-top: 4px; }
 
         .method-text { 
@@ -157,8 +162,10 @@
 
 <div class="modal" id="menuModal">
     <div class="modal-content">
-        <h2 style="margin-top:0;">📝 เพิ่มเมนูใหม่</h2>
+        <h2 id="modalTitle" style="margin-top:0;">📝 เพิ่มเมนูใหม่</h2>
         <form id="menuForm">
+            <input type="hidden" id="editMenuId">
+            
             <div class="form-group"><label>ชื่อเมนู</label><input type="text" id="menuName" required></div>
             <div class="form-group">
                 <label>ประเภทไขมัน</label>
@@ -183,7 +190,7 @@
             <div class="form-group"><label>วิธีทำ / ส่วนผสม</label><textarea id="instructions" rows="5" required></textarea></div>
             <div class="modal-actions">
                 <button type="button" class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
-                <button type="button" class="btn-save" onclick="saveMenu()">บันทึกขึ้นระบบ</button>
+                <button type="button" id="btnSaveSubmit" class="btn-save" onclick="saveMenu()">บันทึกขึ้นระบบ</button>
             </div>
         </form>
     </div>
@@ -191,7 +198,7 @@
 
 <script>
     // ==========================================
-    // ⚙️ ตั้งค่าเชื่อมต่อ FIREBASE (ใส่ให้เรียบร้อยแล้ว)
+    // ⚙️ ตั้งค่าเชื่อมต่อ FIREBASE
     // ==========================================
     const firebaseConfig = {
         apiKey: "AIzaSyAkLEk_ihyEpqcunK1pVZ1O7L5GCMU2WbU",
@@ -203,12 +210,10 @@
         appId: "1:690988825597:web:eab946a1304eb0ab113794"
     };
     
-    // เริ่มระบบ Firebase
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     const menuRef = database.ref('restaurant_menus');
 
-    // สูตรอาหารเริ่มต้นกรณีฐานข้อมูลว่างเปล่า
     const defaultMenus = [
         { name: "สเต็กไก่พริกไทยดำ", fatType: "oil", panType: "both", cutMethod: "หั่น 4 ครั้ง ให้ได้ 5 ชิ้น", instructions: "- เวฟไมโครเวฟเลข 2 นำแป้งมันมาลงด้านหนังไก่\n- ใส่น้ำมัน 10g ลงบนเตาเทปัน\n- ลงด้านหนังไก่ 3 นาที ด้านท้อง(เนื้อ) 1 นาที\n- เสร็จแล้วทาซอสพริกไทยดำบนกระทะเล็ก 5g" },
         { name: "สเต็กเนื้อเต๋า", fatType: "oil", panType: "both", cutMethod: "", instructions: "- วอร์มน้ำเปล่า 800CC + น้ำร้อน 200CC (5 นาที)\n- นำมาปรุงใส่จาน: พริกไทยดำ 0.5g, พริกไทยป่น 0.2g\n- ใส่น้ำมัน 10g ลงเตาเทปัน ทอดข้างละ 30 วิ (ทุกด้าน) ผัดต่อ 30 วิ\n- นำกระทะเล็กมาใส่เนย 10g + โชยุ 5g" },
@@ -219,13 +224,12 @@
         { name: "แฮมเบิร์กหมู", fatType: "butter-solid", panType: "small-pan", cutMethod: "", instructions: "- ใส่เนยทำบนกระทะเล็ก" },
         { name: "ครีมเห็ด 1 ที่", fatType: "butter-solid", panType: "both", cutMethod: "", instructions: "- เห็ดเต๋า 45g, วิปครีม 5g, โชยุ 5g, เนย 10g (*ตามจำนวนที่)\n- นำเห็ดเต๋าไปผัดเตาเทปันใส่เนย\n- นำเห็ดที่ผัดไปผสมกับครีมที่ทำไว้" },
         { name: "สปาเห็ด", fatType: "butter-solid", panType: "small-pan", cutMethod: "", instructions: "- อายิโนะ 50g, โชยุ 10g, กระเทียมเจียว 2g, เห็ดรวม 50g\n- วิธีทำ: ใส่เนยก้อน 10g, ใส่น้ำที่ผสม, ใส่เห็ด, ใส่เส้น" },
-        { name: "สปาเบคอน", fatType: "butter-solid", panType: "small-pan", cutMethod: "", instructions: "- อายิโนะ 50g, ชิราทากิ 5g, คนอร์ 5g\n- วิธีทำ: ใส่เนยก้อน 5g, เบคอน 30g, ใส่น้ำที่ผสม, กระเทียม 5g, ใส่เส้น, โหระพาสับ 5g (แบ่งครึ่ง), พริกแห้ง 5g (แบ่งครึ่ง)\n- ม้วนเส้นใส่จาน แต่งด้วยพริกแห้งและโหระพาที่เหลือ" },
-   
+        { name: "สปาเบคอน", fatType: "butter-solid", panType: "small-pan", cutMethod: "", instructions: "- อายิโนะ 50g, ชิราทากิ 5g, คนอร์ 5g\n- วิธีทำ: ใส่เนยก้อน 5g, เบคอน 30g, ใส่น้ำที่ผสม, กระเทียม 5g, ใส่เส้น, โหระพาสับ 5g (แบ่งครึ่ง), พริกแห้ง 5g (แบ่งครึ่ง)\n- ม้วนเส้นใส่จาน แต่งด้วยพริกแห้งและโหระพาที่เหลือ" }
     ];
 
     let globalMenus = [];
 
-    // ดึงข้อมูล Realtime จากคลาวด์
+    // ดึงข้อมูล Realtime
     menuRef.on('value', (snapshot) => {
         const data = snapshot.val();
         globalMenus = [];
@@ -236,7 +240,6 @@
             });
             renderMenus();
         } else {
-            // หากฐานข้อมูลโล่ง ให้ใส่ค่าตั้งต้นลงไปอัตโนมัติ
             defaultMenus.forEach(item => menuRef.push(item));
         }
     });
@@ -252,6 +255,7 @@
         if (type === 'teppan') return '<span class="tag tag-teppan">🍳 เตาเทปัน</span>';
         if (type === 'small-pan') return '<span class="tag tag-pan">🥘 กระทะเล็ก</span>';
         if (type === 'both') return '<span class="tag tag-teppan">🍳 เตาเทปัน</span> <span class="tag tag-pan">🥘 แยกกระทะเล็ก</span>';
+        if (type === 'Pan-stir') return '<span class="tag tag-stir">🍳 กระทะสำหรับผัด</span>';
         return '';
     }
 
@@ -277,7 +281,10 @@
             card.innerHTML = `
                 <div class="card-header">
                     <h3 class="card-title">${menu.name}</h3>
-                    <button class="delete-btn" onclick="deleteMenu('${menu.id}')">ลบ ✕</button>
+                    <div class="card-buttons">
+                        <button class="edit-btn" onclick="editMenu('${menu.id}')">แก้ไข</button>
+                        <button class="delete-btn" onclick="deleteMenu('${menu.id}')">ลบ ✕</button>
+                    </div>
                 </div>
                 <div class="tags">${getFatTag(menu.fatType)}${getPanTag(menu.panType)}${cutHtml}</div>
                 <div class="method-text">${menu.instructions}</div>
@@ -286,21 +293,66 @@
         });
     }
 
-    function openModal() { document.getElementById('menuModal').style.display = 'flex'; document.getElementById('menuForm').reset(); }
-    function closeModal() { document.getElementById('menuModal').style.display = 'none'; }
+    // เปิด Modal แบบยืดหยุ่น (รองรับการเปิดเพื่อแก้ไขด้วย)
+    function openModal(isEdit = false) { 
+        document.getElementById('menuModal').style.display = 'flex'; 
+        if (!isEdit) {
+            document.getElementById('menuForm').reset(); 
+            document.getElementById('editMenuId').value = '';
+            document.getElementById('modalTitle').innerText = '📝 เพิ่มเมนูใหม่';
+            document.getElementById('btnSaveSubmit').innerText = 'บันทึกขึ้นระบบ';
+        }
+    }
+
+    function closeModal() { 
+        document.getElementById('menuModal').style.display = 'none'; 
+        document.getElementById('menuForm').reset();
+        document.getElementById('editMenuId').value = '';
+    }
+
+    // ฟังก์ชันดึงสูตรเดิมลงฟอร์มเพื่อแก้ไข
+    function editMenu(firebaseId) {
+        const menu = globalMenus.find(m => m.id === firebaseId);
+        if (!menu) return;
+        
+        // ใส่ข้อมูลเดิมลงในฟอร์ม
+        document.getElementById('editMenuId').value = menu.id;
+        document.getElementById('menuName').value = menu.name;
+        document.getElementById('fatType').value = menu.fatType || 'none';
+        document.getElementById('panType').value = menu.panType || 'none';
+        document.getElementById('cutMethod').value = menu.cutMethod || '';
+        document.getElementById('instructions').value = menu.instructions;
+        
+        // ปรับเปลี่ยนหน้าตา Modal เป็นโหมดแก้ไข
+        document.getElementById('modalTitle').innerText = '✏️ แก้ไขสูตรอาหาร';
+        document.getElementById('btnSaveSubmit').innerText = 'อัปเดตข้อมูล';
+        
+        openModal(true);
+    }
 
     function saveMenu() {
+        const id = document.getElementById('editMenuId').value;
         const name = document.getElementById('menuName').value;
         const fatType = document.getElementById('fatType').value;
         const panType = document.getElementById('panType').value;
         const cutMethod = document.getElementById('cutMethod').value;
         const instructions = document.getElementById('instructions').value;
 
-        if (!name || !instructions) return;
+        if (!name || !instructions) return alert("กรุณากรอกข้อมูลให้ครบถ้วน");
 
-        // ดันข้อมูลขึ้น Cloud Database
-        menuRef.push({ name, fatType, panType, cutMethod, instructions });
-        closeModal();
+        const menuData = { name, fatType, panType, cutMethod, instructions };
+
+        if (id) {
+            // กรณีมี ID -> ทำการอัปเดตข้อมูลเดิมทับลงไป
+            menuRef.child(id).update(menuData).then(() => {
+                closeModal();
+            });
+        } else {
+            // กรณีไม่มี ID -> ทำการเพิ่มเมนูใหม่ปกติ
+            menuRef.push(menuData).then(() => {
+                closeModal();
+            });
+        }
     }
 
     function deleteMenu(firebaseId) {
