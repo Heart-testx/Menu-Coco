@@ -35,6 +35,19 @@
         h1 { font-size: 22px; color: var(--primary); margin: 10px 0 20px 0; text-align: center; }
         h2 { font-size: 18px; color: var(--primary); margin-top: 0; }
 
+        /* 🔥 กล่อง MOTTO (แยกส่วนความสำคัญ) */
+        .motto-box {
+            background-color: #FEF9E7;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border-left: 4px solid #F39C12;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .motto-title { font-size: 18px; color: #D35400; margin-top: 0; margin-bottom: 10px; font-weight: bold; }
+        .motto-grid { display: flex; flex-direction: column; gap: 8px; }
+        .motto-item { font-size: 15px; background: rgba(255,255,255,0.7); padding: 8px 12px; border-radius: 8px; }
+
         /* Must Know Section */
         .must-know {
             background-color: var(--secondary);
@@ -143,10 +156,19 @@
         <button class="btn-add" onclick="openModal()">+ เพิ่มเมนูใหม่</button>
     </div>
 
+    <!-- 📢 ส่วนที่ปรับปรุง: แยกกล่อง MOTTO ออกมาให้เด่นชัด -->
+    <div class="motto-box">
+        <div class="motto-title">📢 MOTTO ของร้าน (หัวใจการบริการ)</div>
+        <div class="motto-grid">
+            <div class="motto-item"><strong>😊 NIKONIKO :</strong> รอยยิ้ม</div>
+            <div class="motto-item"><strong>⚡ KIBIKIBI :</strong> ความกระตือรือร้น</div>
+            <div class="motto-item"><strong>🗣️ HAKIHAKI :</strong> การพูดชัดเจนด้วยถ้อยคำสุภาพอ่อนน้อม</div>
+        </div>
+    </div>
+
     <div class="must-know">
         <h2>📌 สิ่งที่ต้องรู้ (พื้นฐาน)</h2>
         <div class="must-know-grid">
-            <div class="must-know-item"><strong> MOTTO 📢:</strong> NIKONIKO=รอยยิ้ม KIBIKIBI=ความกระตือรือร้น HAKIHAKI=การพูดชัดเจนด้วยถ้อยคำสุภาพอ่อนน้อม</div>
             <div class="must-know-item"><strong>🌶️ ซอส HOT:</strong> มันฝรั่ง, แครอท, ไข่ไก่, นม, แป้งสาลี, ถั่วลิสง, ผงกระเทียม, ถั่วเหลือง, หอมหัวใหญ่</div>
             <div class="must-know-item"><strong>🍏 ซอส MILD:</strong> มันฝรั่ง, แครอท, ไข่ไก่, นม, แป้งสาลี, ถั่วลิสง, ผงกระเทียม, ถั่วเหลือง, หอมหัวใหญ่, แอปเปิ้ล, กล้วย, น้ำผึ้ง</div>
             <div class="must-know-item"><strong>🍚 ข้าว:</strong> ตราฟูจิฮิคาริ (ซาซานิชิกิ) ปลูกเชียงราย</div>
@@ -229,7 +251,6 @@
 
     let globalMenus = [];
 
-    // ดึงข้อมูล Realtime
     menuRef.on('value', (snapshot) => {
         const data = snapshot.val();
         globalMenus = [];
@@ -293,7 +314,6 @@
         });
     }
 
-    // เปิด Modal แบบยืดหยุ่น (รองรับการเปิดเพื่อแก้ไขด้วย)
     function openModal(isEdit = false) { 
         document.getElementById('menuModal').style.display = 'flex'; 
         if (!isEdit) {
@@ -310,12 +330,10 @@
         document.getElementById('editMenuId').value = '';
     }
 
-    // ฟังก์ชันดึงสูตรเดิมลงฟอร์มเพื่อแก้ไข
     function editMenu(firebaseId) {
         const menu = globalMenus.find(m => m.id === firebaseId);
         if (!menu) return;
         
-        // ใส่ข้อมูลเดิมลงในฟอร์ม
         document.getElementById('editMenuId').value = menu.id;
         document.getElementById('menuName').value = menu.name;
         document.getElementById('fatType').value = menu.fatType || 'none';
@@ -323,7 +341,6 @@
         document.getElementById('cutMethod').value = menu.cutMethod || '';
         document.getElementById('instructions').value = menu.instructions;
         
-        // ปรับเปลี่ยนหน้าตา Modal เป็นโหมดแก้ไข
         document.getElementById('modalTitle').innerText = '✏️ แก้ไขสูตรอาหาร';
         document.getElementById('btnSaveSubmit').innerText = 'อัปเดตข้อมูล';
         
@@ -343,12 +360,10 @@
         const menuData = { name, fatType, panType, cutMethod, instructions };
 
         if (id) {
-            // กรณีมี ID -> ทำการอัปเดตข้อมูลเดิมทับลงไป
             menuRef.child(id).update(menuData).then(() => {
                 closeModal();
             });
         } else {
-            // กรณีไม่มี ID -> ทำการเพิ่มเมนูใหม่ปกติ
             menuRef.push(menuData).then(() => {
                 closeModal();
             });
