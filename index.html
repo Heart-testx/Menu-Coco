@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>COCO - ระบบคู่มือประกอบอาหารพนักงาน</title>
+    <title>COCO - คู่มือประกอบอาหาร</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -170,7 +170,7 @@
         <div class="container" style="padding: 0;">
             <div class="mode-switcher">
                 <button class="mode-btn active" id="btn-recipe-mode" onclick="switchMode('recipe')">📖 คู่มือสูตรอาหาร</button>
-                <button class="mode-btn" id="btn-manual-mode" onclick="switchMode('manual')">📜 ข้อมูลพื้นฐานร้าน</button>
+                <button class="mode-btn" id="btn-manual-mode" onclick="switchMode('manual')">📜 ข้อมูลพื้นฐาน</button>
             </div>
 
             <div id="recipeTools">
@@ -205,7 +205,7 @@
 
 <div class="modal" id="menuModal">
     <div class="modal-content">
-        <h2 id="modalTitle" style="margin-top:0; font-size:18px; font-weight:800;">📝 บันทึกข้อมูลสูตรอาหาร</h2>
+        <h2 id="modalTitle" style="margin-top:0; font-size:18px; font-weight:800;">📝 บันทึกข้อมูล</h2>
         <form id="menuForm">
             <input type="hidden" id="editMenuId">
             <div class="form-group"><label>ชื่อเมนูอาหาร</label><input type="text" id="menuName" required></div>
@@ -214,19 +214,20 @@
                 <select id="fatType">
                     <option value="none">- ไม่ระบุไขมัน -</option>
                     <option value="oil">🛢️ น้ำมัน</option>
-                    <option value="butter-solid">🧈 เนยก้อน / เนยละลาย</option>
+                    <option value="butter">🧈 เนยก้อน</option>
+                    <option value="Melted butter">🧈 เนยละลาย</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>ลักษณะสถานีเตาที่ปรุง</label>
+                <label>กระทะที่ใช้</label>
                 <select id="panType">
-                    <option value="none">- ไม่ระบุสถานีเตา -</option>
-                    <option value="teppan">🍳 เตาเทปันเหล็ก</option>
-                    <option value="small-pan">🥘 ปรุงแยกในกระทะเล็ก</option>
-                    <option value="both">🍳 เตาเทปัน + 🥘 ปรุงแยกในกระทะเล็ก</option>
+                    <option value="none">- ไม่ระบุกระทะ -</option>
+                    <option value="teppan">🍳 เตาเทปัน</option>
+                    <option value="small-pan">🥘 กระทะเล็ก</option>
+                    <option value="both">🍳 เตาเทปัน + 🥘 กระทะเล็ก</option>
                 </select>
             </div>
-            <div class="form-group"><label>แนวทางการหั่น / สเปกจัดเสิร์ฟ</label><input type="text" id="cutMethod" placeholder="เช่น หั่น 4 ครั้ง ได้ 5 ชิ้น"></div>
+            <div class="form-group"><label>การหั่น</label><input type="text" id="cutMethod" placeholder="เช่น หั่น 4 ครั้ง ได้ 5 ชิ้น"></div>
             <div class="form-group"><label>ขั้นตอนวิธีทำและสัดส่วนส่วนผสม</label><textarea id="instructions" rows="5" required></textarea></div>
             <div class="modal-actions">
                 <button type="button" class="btn-cancel" onclick="closeModal()">ปิด</button>
@@ -269,7 +270,7 @@
         </div>
 
         <div class="manual-card">
-            <div class="manual-title">⚖️ มาตรฐานตารางการชั่งข้าวฟูจิฮิคาริ</div>
+            <div class="manual-title">⚖️ ปริมาณการชั่งข้าว/ซอสแกง</div>
             <div class="manual-text">
                 ปริมาณ ข้าว/ปริมาณ ซอส:
                 <table class="manual-table">
@@ -280,7 +281,7 @@
                         <tr><td><strong>ข้าวนิ (N)</strong></td><td>150 กรัม</td><td>132 กรัม</td></tr>
                         <tr><td><strong>ข้าวซัง (S)</strong></td><td>230 กรัม</td><td>190 กรัม</td></tr>
                         <tr><td><strong>ข้าวย้ง (Y)</strong></td><td>350 กรัม</td><td>260 กรัม</td></tr>
-                        <tr><td><strong>อโกะ (K)</strong></td><td>450 กรัม</td><td>330 กรัม</td></tr>
+                        <tr><td><strong>ข้าวโกะ (K)</strong></td><td>450 กรัม</td><td>330 กรัม</td></tr>
                         <tr><td><strong>ข้าวโระ (R)</strong></td><td>550 กรัม</td><td>400 กรัม</td></tr>
                     </tbody>
                 </table>
