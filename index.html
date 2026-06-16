@@ -198,64 +198,8 @@
             <button class="fab-add" id="fabAddBtn" onclick="openModal()">+</button>
         </div>
 
-        <div id="manualView">
-            
-            <div class="manual-card">
-                <div class="manual-title">📢 MOTTO </div>
-                <div class="manual-text">
-                    พื้นฐานความสำเร็จในการบริการ:
-                    <ul>
-                        <li><strong>NIKONIKO :</strong>(รอยยิ้ม)</li>
-                         <li><strong>KIBIKIBI :</strong>(ความกระตือรือร้น)</li>
-                        <li><strong>HAKIHAKI :</strong>(การพูดชัดเจนด้วยถ้อยคำสุภาพอ่อนน้อม)</li>
-                    </ul>
-                </div>
+        <div id="manualView" style="display: none;">
             </div>
-
-            <div class="manual-card">
-                <div class="manual-title">⚖️ มาตรฐานตารางการชั่งข้าวฟูจิฮิคาริ</div>
-                <div class="manual-text">
-                    ปริมาณ ข้าว/ปริมาณ ซอส:
-                    <table class="manual-table">
-                        <thead>
-                            <tr><th>ไซส์ข้าว</th><th>น้ำหนักมาตรฐาน</th><th>น้ำหนักซอส (S)</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td><strong>ข้าวนิ (N)</strong></td><td>150 กรัม</td><td>132 กรัม</td></tr>
-                            <tr><td><strong>ข้าวซัง (S)</strong></td><td>230 กรัม</td><td>190 กรัม</td></tr>
-                            <tr><td><strong>ข้าวย้ง (Y)</strong></td><td>350 กรัม</td><td>260 กรัม</td></tr>
-                            <tr><td><strong>อโกะ (K)</strong></td><td>450 กรัม</td><td>330 กรัม</td></tr>
-                            <tr><td><strong>ข้าวโระ (R)</strong></td><td>550 กรัม</td><td>400 กรัม</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="manual-card">
-                <div class="manual-title">🥩 ส่วนของเนื้อสัตว์</div>
-                <div class="manual-text">
-                    ส่วนต่างๆของวัตถุดิบ:
-                    <ul>
-                        <li><strong>หมูทอด:</strong> 🍽จะเป็นส่วน <strong>"สันนอก"</strong></li>
-                        <li><strong>หมูคุโรบุตะ:</strong> 🍽จะเป็นส่วน <strong>"สันคอ"</strong></li>
-                        <li><strong>ไก่:</strong> 🍽จะเป็นส่วน <strong>"สะโพกไก่"</strong></li>
-                        <li><strong>เนื้อลูกเต๋า:</strong> 🍽จะเป็นส่วน <strong>"สันใน"</strong></li>
-                        <li><strong>เนื้อสไลด์:</strong> 🍽จะเป็นส่วน <strong>"สันคอ"</strong></li>
-                        <li><strong>เกี๊ยวซ่า:</strong> 🍽ใส้ <strong>"ไก่"</strong></li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="manual-card">
-                <div class="manual-title">🍚 ข้อมูล ข้าว ตรา ฟูจิฮิคาริ</div>
-                <div class="manual-text">
-                    อันนี้ออกสอบแน่พี่น้องเอ้ย :
-                    <div class="script-box">
-                        <div class="script-q"> 🍚 ข้าว ตรา ฟูจิฮิคาริ : "สายพันธุ์ ซาซานิชิกิ/Sasanishiki ปลูกที่เชียงราย"</div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -310,14 +254,80 @@
     let globalMenus = [];
     let currentFilter = { field: 'all', value: null };
 
+    // เก็บ Raw HTML ของข้อมูลร้านไว้ในตัวแปร ไม่ให้โผล่ไปที่แท็ก HTML ตั้งแต่แรกเพื่อความปลอดภัย
+    const manualContentHTML = `
+        <div class="manual-card">
+            <div class="manual-title">📢 MOTTO </div>
+            <div class="manual-text">
+                พื้นฐานความสำเร็จในการบริการ:
+                <ul>
+                    <li><strong>NIKONIKO :</strong>(รอยยิ้ม)</li>
+                    <li><strong>KIBIKIBI :</strong>(ความกระตือรือร้น)</li>
+                    <li><strong>HAKIHAKI :</strong>(การพูดชัดเจนด้วยถ้อยคำสุภาพอ่อนน้อม)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="manual-card">
+            <div class="manual-title">⚖️ มาตรฐานตารางการชั่งข้าวฟูจิฮิคาริ</div>
+            <div class="manual-text">
+                ปริมาณ ข้าว/ปริมาณ ซอส:
+                <table class="manual-table">
+                    <thead>
+                        <tr><th>ไซส์ข้าว</th><th>น้ำหนักมาตรฐาน</th><th>น้ำหนักซอส (S)</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>ข้าวนิ (N)</strong></td><td>150 กรัม</td><td>132 กรัม</td></tr>
+                        <tr><td><strong>ข้าวซัง (S)</strong></td><td>230 กรัม</td><td>190 กรัม</td></tr>
+                        <tr><td><strong>ข้าวย้ง (Y)</strong></td><td>350 กรัม</td><td>260 กรัม</td></tr>
+                        <tr><td><strong>อโกะ (K)</strong></td><td>450 กรัม</td><td>330 กรัม</td></tr>
+                        <tr><td><strong>ข้าวโระ (R)</strong></td><td>550 กรัม</td><td>400 กรัม</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="manual-card">
+            <div class="manual-title">🥩 ส่วนของเนื้อสัตว์</div>
+            <div class="manual-text">
+                ส่วนต่างๆของวัตถุดิบ:
+                <ul>
+                    <li><strong>หมูทอด:</strong> 🍽จะเป็นส่วน <strong>"สันนอก"</strong></li>
+                    <li><strong>หมูคุโรบุตะ:</strong> 🍽จะเป็นส่วน <strong>"สันคอ"</strong></li>
+                    <li><strong>ไก่:</strong> 🍽จะเป็นส่วน <strong>"สะโพกไก่"</strong></li>
+                    <li><strong>เนื้อลูกเต๋า:</strong> 🍽จะเป็นส่วน <strong>"สันใน"</strong></li>
+                    <li><strong>เนื้อสไลด์:</strong> 🍽จะเป็นส่วน <strong>"สันคอ"</strong></li>
+                    <li><strong>เกี๊ยวซ่า:</strong> 🍽ใส้ <strong>"ไก่"</strong></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="manual-card">
+            <div class="manual-title">🍚 ข้อมูล ข้าว ตรา ฟูจิฮิคาริ</div>
+            <div class="manual-text">
+                อันนี้ออกสอบแน่พี่น้องเอ้ย :
+                <div class="script-box">
+                    <div class="script-q"> 🍚 ข้าว ตรา ฟูจิฮิคาริ : "สายพันธุ์ ซาซานิชิกิ/Sasanishiki ปลูกที่เชียงราย"</div>
+                </div>
+            </div>
+        </div>
+    `;
+
     // 🔒 ฟังก์ชันตรวจสอบสิทธิ์และควบคุมหน้ากากความปลอดภัย
     function checkAuth() {
         if (localStorage.getItem('coco_authenticated') === 'true') {
             document.getElementById('loginBlock').style.display = 'none';
             document.getElementById('appBlock').style.display = 'block';
+            
+            // ปลดล็อกข้อมูลพื้นฐานร้านเขียนลง HTML เมื่อล็อกอินผ่านจริงเท่านั้น
+            document.getElementById('manualView').innerHTML = manualContentHTML;
+            
+            // เริ่มต้นเชื่อมต่อ Firebase ยืนยันตัวตนผ่านแล้วเท่านั้น
+            startFirebaseListener();
         } else {
             document.getElementById('loginBlock').style.display = 'flex';
             document.getElementById('appBlock').style.display = 'none';
+            document.getElementById('manualView').innerHTML = ''; // เคลียร์ทิ้งกรณีไม่ได้ล็อกอิน
         }
     }
 
@@ -338,27 +348,40 @@
     window.addEventListener('DOMContentLoaded', checkAuth);
 
     function loadCachedData() {
+        // ดึง Cache ได้ก็ต่อเมื่อล็อกอินแล้วเท่านั้น
+        if (localStorage.getItem('coco_authenticated') !== 'true') return;
         try {
             const cached = localStorage.getItem('coco_menus_cache');
             if (cached) { globalMenus = JSON.parse(cached); renderMenus(); }
         } catch (e) { console.error(e); }
     }
-    loadCachedData();
 
-    menuRef.on('value', (snapshot) => {
-        try {
-            const data = snapshot.val();
-            globalMenus = [];
-            if (data) {
-                Object.keys(data).forEach(key => { if (data[key]) globalMenus.push({ id: key, ...data[key] }); });
-                localStorage.setItem('coco_menus_cache', JSON.stringify(globalMenus));
-            }
-            renderMenus();
-        } catch (err) { loadCachedData(); }
-    }, (error) => { loadCachedData(); });
+    // แยกกลุ่มการดึงข้อมูล Firebase ออกมาทำงานเฉพาะคนปลดล็อกแล้วเท่านั้น
+    function startFirebaseListener() {
+        loadCachedData();
+
+        menuRef.on('value', (snapshot) => {
+            try {
+                // เช็กซ้ำอีกรอบเพื่อความปลอดภัยสูงสุด
+                if (localStorage.getItem('coco_authenticated') !== 'true') {
+                    menuRef.off(); // สั่งปิดการเชื่อมต่อทันที
+                    return;
+                }
+                const data = snapshot.val();
+                globalMenus = [];
+                if (data) {
+                    Object.keys(data).forEach(key => { if (data[key]) globalMenus.push({ id: key, ...data[key] }); });
+                    localStorage.setItem('coco_menus_cache', JSON.stringify(globalMenus));
+                }
+                renderMenus();
+            } catch (err) { loadCachedData(); }
+        }, (error) => { loadCachedData(); });
+    }
 
     // 🔄 ควบคุมการสลับหน้าจอ 2 โหมดแบบไร้รอยต่อ
     function switchMode(mode) {
+        if (localStorage.getItem('coco_authenticated') !== 'true') return; // บล็อกถ้ายังไม่ล็อกอิน
+        
         document.getElementById('btn-recipe-mode').classList.remove('active');
         document.getElementById('btn-manual-mode').classList.remove('active');
         
@@ -379,6 +402,13 @@
     function renderMenus() {
         const grid = document.getElementById('menuGrid');
         if (!grid) return;
+        
+        // ถ้าไม่ผ่านการยืนยันตัวตน ไม่เรนเดอร์ข้อมูลใดๆ ทั้งสิ้น
+        if (localStorage.getItem('coco_authenticated') !== 'true') {
+            grid.innerHTML = '<p style="text-align:center; font-size:15px; color:var(--text-muted); margin-top:30px;">🔒 กรุณาเข้าสู่ระบบก่อนใช้งาน</p>';
+            return;
+        }
+
         const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase();
         grid.innerHTML = '';
 
@@ -437,11 +467,13 @@
         renderMenus();
     }
     function openModal(isEdit = false) { 
+        if (localStorage.getItem('coco_authenticated') !== 'true') return;
         document.getElementById('menuModal').style.display = 'flex'; 
         if (!isEdit) { document.getElementById('menuForm').reset(); document.getElementById('editMenuId').value = ''; document.getElementById('modalTitle').innerText = '📝 เพิ่มสูตรอาหารใหม่'; }
     }
     function closeModal() { document.getElementById('menuModal').style.display = 'none'; }
     function editMenu(firebaseId) {
+        if (localStorage.getItem('coco_authenticated') !== 'true') return;
         const menu = globalMenus.find(m => m.id === firebaseId);
         if (!menu) return;
         document.getElementById('editMenuId').value = menu.id;
@@ -454,6 +486,7 @@
         openModal(true);
     }
     function saveMenu() {
+        if (localStorage.getItem('coco_authenticated') !== 'true') return alert("ไม่มีสิทธิ์เข้าถึง");
         const id = document.getElementById('editMenuId').value;
         const name = document.getElementById('menuName').value.trim();
         const fatType = document.getElementById('fatType').value;
@@ -465,7 +498,10 @@
         if (id) menuRef.child(id).update(menuData).then(() => closeModal());
         else menuRef.push(menuData).then(() => closeModal());
     }
-    function deleteMenu(firebaseId) { if (confirm("ต้องการลบสูตรอาหารนี้ใช่ไหม?")) menuRef.child(firebaseId).remove(); }
+    function deleteMenu(firebaseId) { 
+        if (localStorage.getItem('coco_authenticated') !== 'true') return alert("ไม่มีสิทธิ์เข้าถึง");
+        if (confirm("ต้องการลบสูตรอาหารนี้ใช่ไหม?")) menuRef.child(firebaseId).remove(); 
+    }
 </script>
 </body>
 </html>
