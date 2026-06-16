@@ -2,10 +2,9 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-color-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>COCO - ระบบคู่มือประกอบอาหารพนักงาน</title>
     
-    <!-- ฟอนต์ Prompt สไตล์พรีเมียมโมเดิร์น -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -35,6 +34,30 @@
         }
 
         .container { padding: 15px; max-width: 600px; margin: 0 auto; }
+
+        /* 🔒 UI หน้าจอระบบล็อกรหัสผ่าน (Login Screen) */
+        #loginBlock {
+            display: flex; align-items: center; justify-content: center;
+            min-height: 100vh; background: var(--primary-dark);
+            padding: 20px; position: fixed; top: 0; left: 0; width: 100%; z-index: 9999;
+        }
+        .login-box {
+            background: #FFFFFF; color: var(--primary-dark); padding: 35px 25px;
+            border-radius: 24px; width: 100%; max-width: 360px; text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        .login-input {
+            width: 100%; padding: 14px; border: 2px solid #E2E8F0; border-radius: 12px;
+            font-size: 18px; font-weight: 700; text-align: center; outline: none;
+            margin-top: 15px; margin-bottom: 15px; letter-spacing: 2px; transition: border-color 0.2s;
+        }
+        .login-input:focus { border-color: var(--accent-gold); }
+        .login-btn {
+            width: 100%; background: var(--primary-dark); color: white; border: none;
+            padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .login-btn:active { opacity: 0.9; }
 
         /* 📌 Header ดีไซน์คงที่ (Sticky) */
         .header-sticky {
@@ -84,7 +107,7 @@
         .filter-btn.active { background: var(--primary-dark); color: #FFFFFF; border-color: var(--primary-dark); }
 
         /* -------------------------------------
-           📜 UI หน้าข้อมูลพื้นฐานร้าน
+            📜 UI หน้าข้อมูลพื้นฐานร้าน
         ------------------------------------- */
         #manualView { display: none; padding-bottom: 60px; }
         .manual-card { background: white; border-radius: 16px; padding: 22px 18px; margin-bottom: 16px; border: 1px solid #E2E8F0; box-shadow: 0 4px 15px rgba(0,0,0,0.01); }
@@ -100,7 +123,7 @@
         .script-a { font-weight: 500; color: #1E293B; margin-top: 2px; font-size: 15px; }
 
         /* -------------------------------------
-           🍳 UI การ์ดสูตรอาหาร
+            🍳 UI การ์ดสูตรอาหาร
         ------------------------------------- */
         #recipeView { padding-bottom: 80px; }
         .menu-grid { display: flex; flex-direction: column; gap: 16px; }
@@ -115,7 +138,7 @@
         .bg-butter { background: #FFF7ED; color: #9A3412; border-color: #FFEDD5; }
         .bg-cut { background: #FFF1F2; color: #9F1239; border-color: #FFE4E6; width: 100%; margin-top: 2px; }
         .method-text { font-size: 18px; line-height: 1.7; color: #0F172A; font-weight: 500; background: var(--card-inner); padding: 16px; border-top: 1px solid #F1F5F9; white-space: pre-line; }
-        .card-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 8px 16px; background: #FFFFFF; border-top: 1px dashed #E2E8F0; }
+        .card-footer { display: flex; justify-content: flex-end; gap: 12px; padding: 8px 16px; background: #FFFFFF; border-top: 1px dashed #E2E8F0; }
         .btn-text-edit, .btn-text-delete { background: none; border: none; font-size: 13px; font-weight: 700; cursor: pointer; }
         .btn-text-edit { color: #3b82f6; } .btn-text-delete { color: #ef4444; }
 
@@ -132,111 +155,110 @@
 </head>
 <body>
 
-<div class="header-sticky">
-    <div class="container" style="padding: 0;">
-        <!-- 🔄 ระบบสลับ 2 โหมดใช้งานง่าย ไร้บัค -->
-        <div class="mode-switcher">
-            <button class="mode-btn active" id="btn-recipe-mode" onclick="switchMode('recipe')">📖 คู่มือสูตรอาหาร</button>
-            <button class="mode-btn" id="btn-manual-mode" onclick="switchMode('manual')">📜 ข้อมูลพื้นฐานร้าน</button>
-        </div>
-
-        <div id="recipeTools">
-            <div class="search-wrapper">
-                <input type="text" id="searchInput" class="search-bar" placeholder="🔍 ค้นหาสูตร หรือวิธีทำ..." onkeyup="handleSearchKeyUp()">
-                <button id="clearSearchBtn" class="search-clear" onclick="clearSearch()">✕</button>
-            </div>
-            <div class="filter-scroll">
-                <button class="filter-btn active" id="filter-all" onclick="setQuickFilter('all')">ทั้งหมด</button>
-                <button class="filter-btn" id="filter-teppan" onclick="setQuickFilter('panType', 'teppan')">🍳 เตาเทปัน</button>
-                <button class="filter-btn" id="filter-small-pan" onclick="setQuickFilter('panType', 'small-pan')">🥘 กระทะเล็ก</button>
-                <button class="filter-btn" id="filter-oil" onclick="setQuickFilter('fatType', 'oil')">🛢️ น้ำมัน</button>
-                <button class="filter-btn" id="filter-butter" onclick="setQuickFilter('fatType', 'butter-solid')">🧈 เนย</button>
-            </div>
-        </div>
+<div id="loginBlock">
+    <div class="login-box">
+        <h2 style="margin: 0; font-weight: 800; font-size: 24px; color: var(--primary-dark);">🔒 COCO SYSTEM</h2>
+        <p style="font-size: 14px; color: var(--text-muted); margin: 5px 0 20px 0;">เฉพาะพนักงานร้าน COCO เท่านั้น</p>
+        <input type="password" id="passInput" class="login-input" placeholder="รหัสผ่าน" onkeyup="if(event.key === 'Enter') verifyPassword()">
+        <button class="login-btn" onclick="verifyPassword()">เข้าสู่ระบบคู่มือ</button>
+        <p id="loginError" style="color: #ef4444; font-size: 14px; font-weight: 700; margin-top: 12px; display: none;">❌ รหัสผ่านไม่ถูกต้อง ลองใหม่อีกครั้ง</p>
     </div>
 </div>
 
-<div class="container">
-    
-    <!-- =====================================
-         📖 หน้าจอโหมด: ดูสูตรอาหาร (Recipe View)
-         ===================================== -->
-    <div id="recipeView">
-        <div class="menu-grid" id="menuGrid">
-            <p style="text-align: center; color: var(--text-muted); font-size: 16px; margin-top: 40px;">⏳ กำลังเรียกคืนข้อมูลสูตรอาหาร...</p>
+<div id="appBlock" style="display: none;">
+    <div class="header-sticky">
+        <div class="container" style="padding: 0;">
+            <div class="mode-switcher">
+                <button class="mode-btn active" id="btn-recipe-mode" onclick="switchMode('recipe')">📖 คู่มือสูตรอาหาร</button>
+                <button class="mode-btn" id="btn-manual-mode" onclick="switchMode('manual')">📜 ข้อมูลพื้นฐานร้าน</button>
+            </div>
+
+            <div id="recipeTools">
+                <div class="search-wrapper">
+                    <input type="text" id="searchInput" class="search-bar" placeholder="🔍 ค้นหาสูตร หรือวิธีทำ..." onkeyup="handleSearchKeyUp()">
+                    <button id="clearSearchBtn" class="search-clear" onclick="clearSearch()">✕</button>
+                </div>
+                <div class="filter-scroll">
+                    <button class="filter-btn active" id="filter-all" onclick="setQuickFilter('all')">ทั้งหมด</button>
+                    <button class="filter-btn" id="filter-teppan" onclick="setQuickFilter('panType', 'teppan')">🍳 เตาเทปัน</button>
+                    <button class="filter-btn" id="filter-small-pan" onclick="setQuickFilter('panType', 'small-pan')">🥘 กระทะเล็ก</button>
+                    <button class="filter-btn" id="filter-oil" onclick="setQuickFilter('fatType', 'oil')">🛢️ น้ำมัน</button>
+                    <button class="filter-btn" id="filter-butter" onclick="setQuickFilter('fatType', 'butter-solid')">🧈 เนย</button>
+                </div>
+            </div>
         </div>
-        <button class="fab-add" id="fabAddBtn" onclick="openModal()">+</button>
     </div>
 
-    <!-- =====================================
-         📜 หน้าจอโหมด: ข้อมูลพื้นฐานร้าน (Manual View)
-         ===================================== -->
-    <div id="manualView">
+    <div class="container">
         
-        <div class="manual-card">
-            <div class="manual-title">📢 MOTTO </div>
-            <div class="manual-text">
-                พื้นฐานความสำเร็จในการบริการ:
-                <ul>
-                    <li><strong>NIKONIKO :</strong>(รอยยิ้ม)</li>
-                     <li><strong>KIBIKIBI :</strong>(ความกระตือรือร้น)</li>
-                    <li><strong>HAKIHAKI :</strong>(การพูดชัดเจนด้วยถ้อยคำสุภาพอ่อนน้อม)</li>
-                </ul>
+        <div id="recipeView">
+            <div class="menu-grid" id="menuGrid">
+                <p style="text-align: center; color: var(--text-muted); font-size: 16px; margin-top: 40px;">⏳ กำลังเรียกคืนข้อมูลสูตรอาหาร...</p>
             </div>
+            <button class="fab-add" id="fabAddBtn" onclick="openModal()">+</button>
         </div>
 
-        <div class="manual-card">
-            <div class="manual-title">⚖️ มาตรฐานตารางการชั่งข้าวฟูจิฮิคาริ</div>
-            <div class="manual-text">
-                ปริมาณ ข้าว/ปริมาณ ซอส:
-                <table class="manual-table">
-                    <thead>
-                        <tr><th>ไซส์ข้าว</th><th>น้ำหนักมาตรฐาน</th><th>น้ำหนักซอส (S)</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td><strong>ข้าวนิ (N)</strong></td><td>150 กรัม</td><td>132 กรัม</td></tr>
-                        <tr><td><strong>ข้าวซัง (S)</strong></td><td>230 กรัม</td><td>190 กรัม</td></tr>
-                        <tr><td><strong>ข้าวย้ง (Y)</strong></td><td>350 กรัม</td><td>260 กรัม</td></tr>
-                        <tr><td><strong>อโกะ (K)</strong></td><td>450 กรัม</td><td>330 กรัม</td></tr>
-                        <tr><td><strong>ข้าวโระ (R)</strong></td><td>550 กรัม</td><td>400 กรัม</td></tr>
-                    </tbody>
-                </table>
+        <div id="manualView">
+            
+            <div class="manual-card">
+                <div class="manual-title">📢 MOTTO </div>
+                <div class="manual-text">
+                    พื้นฐานความสำเร็จในการบริการ:
+                    <ul>
+                        <li><strong>NIKONIKO :</strong>(รอยยิ้ม)</li>
+                         <li><strong>KIBIKIBI :</strong>(ความกระตือรือร้น)</li>
+                        <li><strong>HAKIHAKI :</strong>(การพูดชัดเจนด้วยถ้อยคำสุภาพอ่อนน้อม)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="manual-card">
+                <div class="manual-title">⚖️ มาตรฐานตารางการชั่งข้าวฟูจิฮิคาริ</div>
+                <div class="manual-text">
+                    ปริมาณ ข้าว/ปริมาณ ซอส:
+                    <table class="manual-table">
+                        <thead>
+                            <tr><th>ไซส์ข้าว</th><th>น้ำหนักมาตรฐาน</th><th>น้ำหนักซอส (S)</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>ข้าวนิ (N)</strong></td><td>150 กรัม</td><td>132 กรัม</td></tr>
+                            <tr><td><strong>ข้าวซัง (S)</strong></td><td>230 กรัม</td><td>190 กรัม</td></tr>
+                            <tr><td><strong>ข้าวย้ง (Y)</strong></td><td>350 กรัม</td><td>260 กรัม</td></tr>
+                            <tr><td><strong>อโกะ (K)</strong></td><td>450 กรัม</td><td>330 กรัม</td></tr>
+                            <tr><td><strong>ข้าวโระ (R)</strong></td><td>550 กรัม</td><td>400 กรัม</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="manual-card">
+                <div class="manual-title">🥩 ส่วนของเนื้อสัตว์</div>
+                <div class="manual-text">
+                    ส่วนต่างๆของวัตถุดิบ:
+                    <ul>
+                        <li><strong>หมูทอด:</strong> 🍽จะเป็นส่วน <strong>"สันนอก"</strong></li>
+                        <li><strong>หมูคุโรบุตะ:</strong> 🍽จะเป็นส่วน <strong>"สันคอ"</strong></li>
+                        <li><strong>ไก่:</strong> 🍽จะเป็นส่วน <strong>"สะโพกไก่"</strong></li>
+                        <li><strong>เนื้อลูกเต๋า:</strong> 🍽จะเป็นส่วน <strong>"สันใน"</strong></li>
+                        <li><strong>เนื้อสไลด์:</strong> 🍽จะเป็นส่วน <strong>"สันคอ"</strong></li>
+                        <li><strong>เกี๊ยวซ่า:</strong> 🍽ใส้ <strong>"ไก่"</strong></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="manual-card">
+                <div class="manual-title">🍚 ข้อมูล ข้าว ตรา ฟูจิฮิคาริ</div>
+                <div class="manual-text">
+                    อันนี้ออกสอบแน่พี่น้องเอ้ย :
+                    <div class="script-box">
+                        <div class="script-q"> 🍚 ข้าว ตรา ฟูจิฮิคาริ : "สายพันธุ์ ซาซานิชิกิ/Sasanishiki ปลูกที่เชียงราย"</div>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <div class="manual-card">
-            <div class="manual-title">🥩 ส่วนของเนื้อสัตว์</div>
-            <div class="manual-text">
-                ส่วนต่างๆของวัตถุดิบ:
-                <ul>
-                    <li><strong>หมูทอด:</strong> 🍽จะเป็นส่วน <strong>"สันนอก"</strong></li>
-                    <li><strong>หมูคุโรบุตะ:</strong> 🍽จะเป็นส่วน <strong>"สันคอ"</strong></li>
-                    <li><strong>ไก่:</strong> 🍽จะเป็นส่วน <strong>"สะโพกไก่"</strong></li>
-                    <li><strong>เนื้อลูกเต๋า:</strong> 🍽จะเป็นส่วน <strong>"สันใน"</strong></li>
-                    <li><strong>เนื้อสไลด์:</strong> 🍽จะเป็นส่วน <strong>"สันคอ"</strong></li>
-		        <li><strong>เกี๊ยวซ่า:</strong> 🍽ใส้ <strong>"ไก่"</strong></li>
-
-                </ul>
-            </div>
-        </div>
-
-        <div class="manual-card">
-            <div class="manual-title">🍚 ข้อมูล ข้าว ตรา ฟูจิฮิคาริ</div>
-            <div class="manual-text">
-                อันนี้ออกสอบแน่พี่น้องเอ้ย :
-                
-                <div class="script-box">
-                    <div class="script-q"> 🍚 ข้าว ตรา ฟูจิฮิคาริ : "สายพันธุ์ ซาซานิชิกิ/Sasanishiki ปลูกที่เชียงราย"</div>
-                    
-                   </div>
-            </div>
-        </div>
-
     </div>
-
 </div>
 
-<!-- Modal เพิ่มสูตรอาหาร -->
 <div class="modal" id="menuModal">
     <div class="modal-content">
         <h2 id="modalTitle" style="margin-top:0; font-size:18px; font-weight:800;">📝 บันทึกข้อมูลสูตรอาหาร</h2>
@@ -287,6 +309,33 @@
 
     let globalMenus = [];
     let currentFilter = { field: 'all', value: null };
+
+    // 🔒 ฟังก์ชันตรวจสอบสิทธิ์และควบคุมหน้ากากความปลอดภัย
+    function checkAuth() {
+        if (localStorage.getItem('coco_authenticated') === 'true') {
+            document.getElementById('loginBlock').style.display = 'none';
+            document.getElementById('appBlock').style.display = 'block';
+        } else {
+            document.getElementById('loginBlock').style.display = 'flex';
+            document.getElementById('appBlock').style.display = 'none';
+        }
+    }
+
+    function verifyPassword() {
+        const inputPass = document.getElementById('passInput').value;
+        if (inputPass === 'T50') {
+            localStorage.setItem('coco_authenticated', 'true');
+            checkAuth();
+        } else {
+            const errorTxt = document.getElementById('loginError');
+            errorTxt.style.display = 'block';
+            document.getElementById('passInput').value = '';
+            setTimeout(() => { errorTxt.style.display = 'none'; }, 2500);
+        }
+    }
+
+    // รันกระบวนการตรวจสิทธิ์ทันทีเมื่อโครงสร้างเว็บโหลดเสร็จสิ้น
+    window.addEventListener('DOMContentLoaded', checkAuth);
 
     function loadCachedData() {
         try {
