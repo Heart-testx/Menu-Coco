@@ -2,226 +2,276 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>คู่มือสูตรอาหารสำหรับพนักงาน (ซิงค์คลาวด์)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-color-scale=1.0, user-scalable=no">
+    <title>COCO - ระบบคู่มือประกอบอาหารพนักงาน</title>
     
+    <!-- ฟอนต์ Prompt สไตล์พรีเมียมโมเดิร์น -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
     <style>
         :root {
-            --primary: #FF6B6B;
-            --primary-dark: #E55050;
-            --secondary: #FFF4E6;
-            --text-main: #2D3436;
-            --text-muted: #636E72;
-            --bg-color: #006699;
-            --card-bg: #FFFFFF;
+            --primary-dark: #0F172A;  /* Midnight Slate */
+            --accent-gold: #B45309;   /* Rich Gold */
+            --success-emerald: #059669;
+            --bg-light: #F8FAFC;      /* Off-White นวลตา */
+            --card-inner: #FAFAF9;    /* Soft Cream */
+            --text-main: #1E293B;
+            --text-muted: #64748B;
         }
 
-        * { box-sizing: border-box; font-family: 'Prompt', 'Segoe UI', sans-serif; }
+        * { box-sizing: border-box; font-family: 'Prompt', sans-serif; -webkit-tap-highlight-color: transparent; }
         
         body {
-            background-color: var(--bg-color);
+            background-color: var(--bg-light);
             color: var(--text-main);
-            margin: 0;
-            padding: 15px;
+            margin: 0; padding: 0;
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
         }
 
-        .container { max-width: 600px; margin: 0 auto; }
-        
-        h1 { font-size: 22px; color: var(--primary); margin: 10px 0 20px 0; text-align: center; }
-        h2 { font-size: 18px; color: var(--primary); margin-top: 0; }
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
 
-        /* 🔥 กล่อง MOTTO (แยกส่วนความสำคัญ) */
-        .motto-box {
-            background-color: #FEF9E7;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            border-left: 4px solid #F39C12;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-        .motto-title { font-size: 18px; color: #D35400; margin-top: 0; margin-bottom: 10px; font-weight: bold; }
-        .motto-grid { display: flex; flex-direction: column; gap: 8px; }
-        .motto-item { font-size: 15px; background: rgba(255,255,255,0.7); padding: 8px 12px; border-radius: 8px; }
-
-        /* Must Know Section */
-        .must-know {
-            background-color: var(--secondary);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            border-left: 4px solid var(--primary);
-        }
-        .must-know-grid { display: flex; flex-direction: column; gap: 12px; }
-        .must-know-item { font-size: 15px; background: rgba(255,255,255,0.6); padding: 10px; border-radius: 8px; }
-        .must-know-item strong { color: #D35400; display: block; margin-bottom: 4px; }
-        .must-know-item ul { margin: 0; padding-left: 20px; }
-
-        /* Top Bar */
-        .top-bar {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 20px;
-            position: sticky;
-            top: 0;
-            background: var(--bg-color);
-            padding: 10px 0;
-            z-index: 10;
+        /* 📌 Header ดีไซน์คงที่ (Sticky) */
+        .header-sticky {
+            position: sticky; top: 0;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(8px);
+            padding: 14px 12px;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+            border-bottom: 1px solid #E2E8F0;
+            z-index: 100;
         }
 
+        /* ปุ่มสลับโหมด 2 ปุ่มแบ่งครึ่งหน้าจอสมมาตรสวยงาม */
+        .mode-switcher {
+            display: flex; background: #F1F5F9; padding: 4px; border-radius: 14px; margin-bottom: 12px; gap: 4px;
+        }
+        .mode-btn {
+            flex: 1; padding: 12px; border-radius: 10px; border: none;
+            font-size: 15px; font-weight: 700; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.2s ease;
+            text-align: center;
+        }
+        .mode-btn.active {
+            background: #FFFFFF; color: var(--primary-dark);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.05);
+        }
+
+        /* ส่วนเครื่องมือค้นหา */
+        .search-wrapper { position: relative; margin-bottom: 10px; }
         .search-bar {
-            width: 100%;
-            padding: 14px 20px;
-            border: 2px solid #E2E8F0;
-            border-radius: 30px;
-            font-size: 16px;
-            outline: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            width: 100%; padding: 14px 45px 14px 16px; border: 1px solid #E2E8F0;
+            border-radius: 12px; font-size: 16px; font-weight: 600; outline: none; background-color: #FFFFFF;
+            color: var(--text-main);
         }
-        .search-bar:focus { border-color: var(--primary); }
-
-        .btn-add {
-            width: 100%;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 30px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
+        .search-bar:focus { border-color: var(--primary-dark); }
+        .search-clear {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            background: #E2E8F0; color: #475569; border: none; border-radius: 50%;
+            width: 24px; height: 24px; font-size: 12px; display: none; align-items: center; justify-content: center; font-weight: bold; cursor: pointer;
         }
-        .btn-add:active { background-color: var(--primary-dark); transform: scale(0.98); }
 
-        /* Menu Cards */
-        .menu-grid { display: flex; flex-direction: column; gap: 15px; }
-        .card { background: var(--card-bg); border-radius: 16px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); position: relative; }
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 10px; }
-        .card-title { font-size: 18px; font-weight: bold; color: #2D3436; margin: 0; line-height: 1.3; }
+        .filter-scroll { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+        .filter-scroll::-webkit-scrollbar { display: none; }
+        .filter-btn {
+            background: #FFFFFF; color: var(--text-muted); border: 1px solid #E2E8F0;
+            padding: 8px 14px; border-radius: 30px; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer;
+        }
+        .filter-btn.active { background: var(--primary-dark); color: #FFFFFF; border-color: var(--primary-dark); }
+
+        /* -------------------------------------
+           📜 UI หน้าข้อมูลพื้นฐานร้าน
+        ------------------------------------- */
+        #manualView { display: none; padding-bottom: 60px; }
+        .manual-card { background: white; border-radius: 16px; padding: 22px 18px; margin-bottom: 16px; border: 1px solid #E2E8F0; box-shadow: 0 4px 15px rgba(0,0,0,0.01); }
+        .manual-title { font-size: 19px; font-weight: 800; color: var(--primary-dark); margin-top: 0; margin-bottom: 14px; border-left: 4px solid var(--accent-gold); padding-left: 10px; }
+        .manual-text { font-size: 16px; color: #334155; line-height: 1.7; }
         
-        .card-buttons { display: flex; gap: 6px; }
-        .edit-btn {
-            color: #1976D2; background: #E3F2FD; border: none; padding: 6px 12px; border-radius: 15px; font-size: 13px; font-weight: bold; cursor: pointer;
-        }
-        .delete-btn { 
-            color: #FF7675; background: #FFEAA7; border: none; padding: 6px 12px; border-radius: 15px; font-size: 13px; font-weight: bold; cursor: pointer;
-        }
-
-        /* Tags */
-        .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 15px; }
-        .tag { padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; display: inline-flex; align-items: center; }
-        .tag-oil { background-color: #FFF3CD; color: #856404; }
-        .tag-butter-solid { background-color: #FFE8A1; color: #D35400; }
-        .tag-butter-melt { background-color: #FFEAA7; color: #E67E22; }
-        .tag-teppan { background-color: #DFE6E9; color: #2D3436; }
-        .tag-pan { background-color: #B2BEC3; color: #2D3436; }
-        .tag-stir { background-color: #E8F5E9; color: #2E7D32; }
-        .tag-cut { background-color: #FFDFDF; color: #D63031; width: 100%; margin-top: 4px; }
-
-        .method-text { 
-            font-size: 16px; white-space: pre-line; color: #4A4A4A; background: #F8F9FA; padding: 12px; border-radius: 8px; border-left: 3px solid #74B9FF;
-        }
-
-        /* Modal */
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); justify-content: center; align-items: flex-end; z-index: 1000;
-        }
-        .modal-content {
-            background: white; width: 100%; max-height: 90vh; padding: 25px 20px; border-radius: 20px 20px 0 0; overflow-y: auto; animation: slideUp 0.3s ease-out;
-        }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 15px; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #DFE6E9; border-radius: 10px; font-size: 16px; background: #F8F9FA; }
+        .manual-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 15px; }
+        .manual-table th { background: #F8FAFC; color: var(--primary-dark); font-weight: 700; text-align: left; padding: 10px; border-bottom: 2px solid #E2E8F0; }
+        .manual-table td { padding: 10px; border-bottom: 1px solid #F1F5F9; color: #334155; font-weight: 500; }
         
-        .modal-actions { display: flex; gap: 10px; margin-top: 25px; }
-        .btn-cancel { flex: 1; background: #DFE6E9; color: #2D3436; border: none; padding: 14px; border-radius: 12px; font-weight: bold; font-size: 16px; }
-        .btn-save { flex: 2; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; font-size: 16px; }
+        .script-box { background: var(--card-inner); border-radius: 10px; padding: 12px 14px; border: 1px solid #E7E5E4; margin-top: 10px; }
+        .script-q { font-weight: 700; color: var(--accent-gold); font-size: 15px; }
+        .script-a { font-weight: 500; color: #1E293B; margin-top: 2px; font-size: 15px; }
+
+        /* -------------------------------------
+           🍳 UI การ์ดสูตรอาหาร
+        ------------------------------------- */
+        #recipeView { padding-bottom: 80px; }
+        .menu-grid { display: flex; flex-direction: column; gap: 16px; }
+        .card { background: #FFFFFF; border-radius: 16px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02); border: 1px solid #E2E8F0; overflow: hidden; }
+        .card-header { padding: 16px 16px 10px 16px; }
+        .card-title { font-size: 22px; font-weight: 800; color: var(--primary-dark); margin: 0; }
+        .card-indicators { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 14px 16px; }
+        .badge { padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: 700; border: 1px solid transparent; }
+        .bg-teppan { background: #F0FDF4; color: #166534; border-color: #DCFCE7; }
+        .bg-pan { background: #F8FAFC; color: #334155; border-color: #E2E8F0; }
+        .bg-oil { background: #FFFBEB; color: #92400E; border-color: #FEF3C7; }
+        .bg-butter { background: #FFF7ED; color: #9A3412; border-color: #FFEDD5; }
+        .bg-cut { background: #FFF1F2; color: #9F1239; border-color: #FFE4E6; width: 100%; margin-top: 2px; }
+        .method-text { font-size: 18px; line-height: 1.7; color: #0F172A; font-weight: 500; background: var(--card-inner); padding: 16px; border-top: 1px solid #F1F5F9; white-space: pre-line; }
+        .card-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 8px 16px; background: #FFFFFF; border-top: 1px dashed #E2E8F0; }
+        .btn-text-edit, .btn-text-delete { background: none; border: none; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .btn-text-edit { color: #3b82f6; } .btn-text-delete { color: #ef4444; }
+
+        .fab-add { position: fixed; bottom: 20px; right: 20px; background: var(--primary-dark); color: white; border: none; width: 56px; height: 56px; border-radius: 28px; font-size: 24px; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.2); z-index: 100; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); justify-content: center; align-items: flex-end; z-index: 1000; }
+        .modal-content { background: white; width: 100%; max-width: 600px; max-height: 85vh; padding: 20px; border-radius: 22px 22px 0 0; overflow-y: auto; }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; margin-bottom: 4px; font-weight: 700; font-size: 14px; color: var(--primary-dark); }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #E2E8F0; border-radius: 10px; font-size: 15px; outline: none; background: #F8FAFC; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-cancel { flex: 1; background: #F1F5F9; color: var(--text-main); border: none; padding: 14px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+        .btn-save { flex: 2; background: var(--primary-dark); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 700; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>🍳 สูตรอาหาร+วิธีทำ </h1>
-
-    <div class="top-bar">
-        <input type="text" id="searchInput" class="search-bar" placeholder="🔍 ค้นหาเมนู หรือ ส่วนผสม..." onkeyup="renderMenus()">
-        <button class="btn-add" onclick="openModal()">+ เพิ่มเมนูใหม่</button>
-    </div>
-
-    <!-- 📢 ส่วนที่ปรับปรุง: แยกกล่อง MOTTO ออกมาให้เด่นชัด -->
-    <div class="motto-box">
-        <div class="motto-title">📢 MOTTO ของร้าน (หัวใจการบริการ)</div>
-        <div class="motto-grid">
-            <div class="motto-item"><strong>😊 NIKONIKO :</strong> รอยยิ้ม</div>
-            <div class="motto-item"><strong>⚡ KIBIKIBI :</strong> ความกระตือรือร้น</div>
-            <div class="motto-item"><strong>🗣️ HAKIHAKI :</strong> การพูดชัดเจนด้วยถ้อยคำสุภาพอ่อนน้อม</div>
+<div class="header-sticky">
+    <div class="container" style="padding: 0;">
+        <!-- 🔄 ระบบสลับ 2 โหมดใช้งานง่าย ไร้บัค -->
+        <div class="mode-switcher">
+            <button class="mode-btn active" id="btn-recipe-mode" onclick="switchMode('recipe')">📖 คู่มือสูตรอาหาร</button>
+            <button class="mode-btn" id="btn-manual-mode" onclick="switchMode('manual')">📜 ข้อมูลพื้นฐานร้าน</button>
         </div>
-    </div>
 
-    <div class="must-know">
-        <h2>📌 สิ่งที่ต้องรู้ (พื้นฐาน)</h2>
-        <div class="must-know-grid">
-            <div class="must-know-item"><strong>🌶️ ซอส HOT:</strong> มันฝรั่ง, แครอท, ไข่ไก่, นม, แป้งสาลี, ถั่วลิสง, ผงกระเทียม, ถั่วเหลือง, หอมหัวใหญ่</div>
-            <div class="must-know-item"><strong>🍏 ซอส MILD:</strong> มันฝรั่ง, แครอท, ไข่ไก่, นม, แป้งสาลี, ถั่วลิสง, ผงกระเทียม, ถั่วเหลือง, หอมหัวใหญ่, แอปเปิ้ล, กล้วย, น้ำผึ้ง</div>
-            <div class="must-know-item"><strong>🍚 ข้าว:</strong> ตราฟูจิฮิคาริ (ซาซานิชิกิ) ปลูกเชียงราย</div>
-            <div class="must-know-item"><strong>🥩 ชิ้นส่วนเนื้อสัตว์:</strong> หมูทอด=สันนอกไม่ติดมัน | คุโรบุตะ=สันคอ | ไก่=สะโพก | เกี๊ยวซ่า=ไก่ | เนื้อเต๋า=สันใน | เนื้อตุ๋น=เนื้อติดมัน | เนื้อสไลด์=เนื้อสันคอ</div>
-            <div class="must-know-item"><strong>⚖ ปริมาณข้าว:</strong> ข้าวนิ=150g./S132g. ข้าวซัง=230g./S190g. ข้าวย้ง=350g./S260g. ข้าวโกะ=450g./S330g. ข้าวโระ=550g/S400g.</div>
+        <div id="recipeTools">
+            <div class="search-wrapper">
+                <input type="text" id="searchInput" class="search-bar" placeholder="🔍 ค้นหาสูตร หรือวิธีทำ..." onkeyup="handleSearchKeyUp()">
+                <button id="clearSearchBtn" class="search-clear" onclick="clearSearch()">✕</button>
+            </div>
+            <div class="filter-scroll">
+                <button class="filter-btn active" id="filter-all" onclick="setQuickFilter('all')">ทั้งหมด</button>
+                <button class="filter-btn" id="filter-teppan" onclick="setQuickFilter('panType', 'teppan')">🍳 เตาเทปัน</button>
+                <button class="filter-btn" id="filter-small-pan" onclick="setQuickFilter('panType', 'small-pan')">🥘 กระทะเล็ก</button>
+                <button class="filter-btn" id="filter-oil" onclick="setQuickFilter('fatType', 'oil')">🛢️ น้ำมัน</button>
+                <button class="filter-btn" id="filter-butter" onclick="setQuickFilter('fatType', 'butter-solid')">🧈 เนย</button>
+            </div>
         </div>
-    </div>
-
-    <div class="menu-grid" id="menuGrid">
-        <p style="text-align: center; color: var(--text-muted);">⏳ LOADING...</p>
     </div>
 </div>
 
+<div class="container">
+    
+    <!-- =====================================
+         📖 หน้าจอโหมด: ดูสูตรอาหาร (Recipe View)
+         ===================================== -->
+    <div id="recipeView">
+        <div class="menu-grid" id="menuGrid">
+            <p style="text-align: center; color: var(--text-muted); font-size: 16px; margin-top: 40px;">⏳ กำลังเรียกคืนข้อมูลสูตรอาหาร...</p>
+        </div>
+        <button class="fab-add" id="fabAddBtn" onclick="openModal()">+</button>
+    </div>
+
+    <!-- =====================================
+         📜 หน้าจอโหมด: ข้อมูลพื้นฐานร้าน (Manual View)
+         ===================================== -->
+    <div id="manualView">
+        
+        <div class="manual-card">
+            <div class="manual-title">📢 MOTTO หัวใจและมาตรฐานการบริการ</div>
+            <div class="manual-text">
+                พนักงานใหม่ทุกคนต้องยึดหลักบริการ 3 ข้อนี้ให้ขึ้นใจเพื่อความประทับใจสูงสุดของลูกค้า:
+                <ul>
+                    <li><strong>NIKONIKO :</strong>(รอยยิ้ม)</li>
+                     <li><strong>KIBIKIBI :</strong>(ความกระตือรือร้น)</li>
+                    <li><strong>HAKIHAKI :</strong>(ชัดเจน สุภาพ)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="manual-card">
+            <div class="manual-title">⚖️ มาตรฐานตารางการชั่งข้าวฟูจิฮิคาริ</div>
+            <div class="manual-text">
+                ปริมาณ ข้าว/ปริมาณ ซอส:
+                <table class="manual-table">
+                    <thead>
+                        <tr><th>ไซส์ข้าว</th><th>น้ำหนักมาตรฐาน</th><th>น้ำหนักซอส (S)</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>ข้าวนิ (N)</strong></td><td>150 กรัม</td><td>132 กรัม</td></tr>
+                        <tr><td><strong>ข้าวซัง (S)</strong></td><td>230 กรัม</td><td>190 กรัม</td></tr>
+                        <tr><td><strong>ข้าวย้ง (Y)</strong></td><td>350 กรัม</td><td>260 กรัม</td></tr>
+                        <tr><td><strong>อโกะ (K)</strong></td><td>450 กรัม</td><td>330 กรัม</td></tr>
+                        <tr><td><strong>ข้าวโระ (R)</strong></td><td>550 กรัม</td><td>400 กรัม</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="manual-card">
+            <div class="manual-title">🥩 ส่วนของเนื้อสัตว์</div>
+            <div class="manual-text">
+                หยิบและเตรียมเนื้อสัตว์ให้ตรงกับเมนูที่ระบุ เพื่อรักษามาตรฐานความอร่อย:
+                <ul>
+                    <li><strong>หมูทอด:</strong> 🍽จะเป็นส่วน <strong>"สันนอก"</strong></li>
+                    <li><strong>หมูคุโรบุตะ:</strong> 🍽จะเป็นส่วน <strong>"สันคอ"</strong></li>
+                    <li><strong>ไก่:</strong> 🍽จะเป็นส่วน <strong>"สะโพกไก่"</strong></li>
+                    <li><strong>เนื้อลูกเต๋า:</strong> 🍽จะเป็นส่วน <strong>"สันใน"</strong></li>
+                    <li><strong>เนื้อสไลด์:</strong> 🍽จะเป็นส่วน <strong>"สันคอ"</strong></li>
+		        <li><strong>เกี๊ยวซ่า:</strong> 🍽ใส้ <strong>"ไก่"</strong></li>
+
+                </ul>
+            </div>
+        </div>
+
+        <div class="manual-card">
+            <div class="manual-title">🍚 ข้อมูล ข้าว ตรา ฟูจิฮิคาริ</div>
+            <div class="manual-text">
+                อันนี้ออกสอบแน่พี่น้องเอ้ย :
+                
+                <div class="script-box">
+                    <div class="script-q"> 🍚 ข้าว ตรา ฟูจิฮิคาริ : "สายพันธุ์ ซาซานิชิกิ/Sasanishiki ปลูกที่เชียงราย"</div>
+                    
+                   </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Modal เพิ่มสูตรอาหาร -->
 <div class="modal" id="menuModal">
     <div class="modal-content">
-        <h2 id="modalTitle" style="margin-top:0;">📝 เพิ่มเมนูใหม่</h2>
+        <h2 id="modalTitle" style="margin-top:0; font-size:18px; font-weight:800;">📝 บันทึกข้อมูลสูตรอาหาร</h2>
         <form id="menuForm">
             <input type="hidden" id="editMenuId">
-            
-            <div class="form-group"><label>ชื่อเมนู</label><input type="text" id="menuName" required></div>
+            <div class="form-group"><label>ชื่อเมนูอาหาร</label><input type="text" id="menuName" required></div>
             <div class="form-group">
-                <label>ประเภทไขมัน</label>
+                <label>การเลือกไขมันพื้นฐาน</label>
                 <select id="fatType">
-                    <option value="none">- ไม่ระบุ -</option>
-                    <option value="oil">ใช้น้ำมัน</option>
-                    <option value="butter-solid">ใช้เนยก้อน</option>
-                    <option value="butter-melt">ใช้เนยละลาย</option>
+                    <option value="none">- ไม่ระบุไขมัน -</option>
+                    <option value="oil">🛢️ น้ำมัน</option>
+                    <option value="butter-solid">🧈 เนยก้อน / เนยละลาย</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>การแยกกระทะ</label>
+                <label>ลักษณะสถานีเตาที่ปรุง</label>
                 <select id="panType">
-                    <option value="none">- ไม่ระบุ -</option>
-                    <option value="teppan">เตาเทปัน</option>
-                    <option value="small-pan">กระทะเล็ก</option>
-                    <option value="both">เตาเทปัน + ปรุงแยกกระทะเล็ก</option>
-                    <option value="Pan-stir">กระทะสำหรับผัด</option>
+                    <option value="none">- ไม่ระบุสถานีเตา -</option>
+                    <option value="teppan">🍳 เตาเทปันเหล็ก</option>
+                    <option value="small-pan">🥘 ปรุงแยกในกระทะเล็ก</option>
+                    <option value="both">🍳 เตาเทปัน + 🥘 ปรุงแยกในกระทะเล็ก</option>
                 </select>
             </div>
-            <div class="form-group"><label>วิธีหั่น (เช่น "หั่น 4 ครั้ง ได้ 5 ชิ้น")</label><input type="text" id="cutMethod" placeholder="เว้นว่างได้"></div>
-            <div class="form-group"><label>วิธีทำ / ส่วนผสม</label><textarea id="instructions" rows="5" required></textarea></div>
+            <div class="form-group"><label>แนวทางการหั่น / สเปกจัดเสิร์ฟ</label><input type="text" id="cutMethod" placeholder="เช่น หั่น 4 ครั้ง ได้ 5 ชิ้น"></div>
+            <div class="form-group"><label>ขั้นตอนวิธีทำและสัดส่วนส่วนผสม</label><textarea id="instructions" rows="5" required></textarea></div>
             <div class="modal-actions">
-                <button type="button" class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
-                <button type="button" id="btnSaveSubmit" class="btn-save" onclick="saveMenu()">บันทึกขึ้นระบบ</button>
+                <button type="button" class="btn-cancel" onclick="closeModal()">ปิด</button>
+                <button type="button" id="btnSaveSubmit" class="btn-save" onclick="saveMenu()">บันทึกข้อมูลสูตร</button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-    // ==========================================
-    // ⚙️ ตั้งค่าเชื่อมต่อ FIREBASE
-    // ==========================================
+    // ⚙️ FIREBASE CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyAkLEk_ihyEpqcunK1pVZ1O7L5GCMU2WbU",
         authDomain: "coco-menu-7c395.firebaseapp.com",
@@ -231,150 +281,142 @@
         messagingSenderId: "690988825597",
         appId: "1:690988825597:web:eab946a1304eb0ab113794"
     };
-    
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     const menuRef = database.ref('restaurant_menus');
 
-    const defaultMenus = [
-        { name: "สเต็กไก่พริกไทยดำ", fatType: "oil", panType: "both", cutMethod: "หั่น 4 ครั้ง ให้ได้ 5 ชิ้น", instructions: "- เวฟไมโครเวฟเลข 2 นำแป้งมันมาลงด้านหนังไก่\n- ใส่น้ำมัน 10g ลงบนเตาเทปัน\n- ลงด้านหนังไก่ 3 นาที ด้านท้อง(เนื้อ) 1 นาที\n- เสร็จแล้วทาซอสพริกไทยดำบนกระทะเล็ก 5g" },
-        { name: "สเต็กเนื้อเต๋า", fatType: "oil", panType: "both", cutMethod: "", instructions: "- วอร์มน้ำเปล่า 800CC + น้ำร้อน 200CC (5 นาที)\n- นำมาปรุงใส่จาน: พริกไทยดำ 0.5g, พริกไทยป่น 0.2g\n- ใส่น้ำมัน 10g ลงเตาเทปัน ทอดข้างละ 30 วิ (ทุกด้าน) ผัดต่อ 30 วิ\n- นำกระทะเล็กมาใส่เนย 10g + โชยุ 5g" },
-        { name: "สเต็กปลากระพง", fatType: "oil", panType: "teppan", cutMethod: "", instructions: "- ใส่น้ำมัน เอาด้านหนังลงก่อน ข้างละ 1 นาที\n- ใส่น้ำเปล่า 5g รอบๆสเต็กปลา จับเวลา 15 วิ\n- ปรุง: ใส่เนย 10g, โชยุ 5g, ไวน์แดง 5g ราดบนตัวปลา\n- โรยหอมไทย 0.2g" },
-        { name: "คุโรบุตะ", fatType: "oil", panType: "both", cutMethod: "หั่น 5 ครั้ง ให้ได้ 6 ชิ้น", instructions: "- เวฟไมโครเวฟเลข 2\n- ใส่น้ำมันลงทอดข้างละ 1 นาที\n- ปรุงแยกกระทะเล็ก: เนย 10g, โชยุ 5g, ไวน์แดง 5g" },
-        { name: "แซลม่อนย่างเนย", fatType: "oil", panType: "both", cutMethod: "", instructions: "- ซับปลา ปรุงรส 2 ด้าน (พริกไทยดำ+เกลือ+พริกไทยป่น)\n- ใส่น้ำมัน 10g ลงเตาเทปัน ข้างละ 2 นาที (หนังลงก่อน)\n- นำปลามาใส่กระทะเล็ก ปรุงด้วยเนย 10g, โชยุ 5g" },
-        { name: "แฮมเบิร์กเนื้อ", fatType: "butter-solid", panType: "teppan", cutMethod: "", instructions: "- ใส่เนยทำบนกระทะเทปัน" },
-        { name: "แฮมเบิร์กหมู", fatType: "butter-solid", panType: "small-pan", cutMethod: "", instructions: "- ใส่เนยทำบนกระทะเล็ก" },
-        { name: "ครีมเห็ด 1 ที่", fatType: "butter-solid", panType: "both", cutMethod: "", instructions: "- เห็ดเต๋า 45g, วิปครีม 5g, โชยุ 5g, เนย 10g (*ตามจำนวนที่)\n- นำเห็ดเต๋าไปผัดเตาเทปันใส่เนย\n- นำเห็ดที่ผัดไปผสมกับครีมที่ทำไว้" },
-        { name: "สปาเห็ด", fatType: "butter-solid", panType: "small-pan", cutMethod: "", instructions: "- อายิโนะ 50g, โชยุ 10g, กระเทียมเจียว 2g, เห็ดรวม 50g\n- วิธีทำ: ใส่เนยก้อน 10g, ใส่น้ำที่ผสม, ใส่เห็ด, ใส่เส้น" },
-        { name: "สปาเบคอน", fatType: "butter-solid", panType: "small-pan", cutMethod: "", instructions: "- อายิโนะ 50g, ชิราทากิ 5g, คนอร์ 5g\n- วิธีทำ: ใส่เนยก้อน 5g, เบคอน 30g, ใส่น้ำที่ผสม, กระเทียม 5g, ใส่เส้น, โหระพาสับ 5g (แบ่งครึ่ง), พริกแห้ง 5g (แบ่งครึ่ง)\n- ม้วนเส้นใส่จาน แต่งด้วยพริกแห้งและโหระพาที่เหลือ" }
-    ];
-
     let globalMenus = [];
+    let currentFilter = { field: 'all', value: null };
+
+    function loadCachedData() {
+        try {
+            const cached = localStorage.getItem('coco_menus_cache');
+            if (cached) { globalMenus = JSON.parse(cached); renderMenus(); }
+        } catch (e) { console.error(e); }
+    }
+    loadCachedData();
 
     menuRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        globalMenus = [];
-        
-        if (data) {
-            Object.keys(data).forEach(key => {
-                globalMenus.push({ id: key, ...data[key] });
-            });
+        try {
+            const data = snapshot.val();
+            globalMenus = [];
+            if (data) {
+                Object.keys(data).forEach(key => { if (data[key]) globalMenus.push({ id: key, ...data[key] }); });
+                localStorage.setItem('coco_menus_cache', JSON.stringify(globalMenus));
+            }
             renderMenus();
-        } else {
-            defaultMenus.forEach(item => menuRef.push(item));
+        } catch (err) { loadCachedData(); }
+    }, (error) => { loadCachedData(); });
+
+    // 🔄 ควบคุมการสลับหน้าจอ 2 โหมดแบบไร้รอยต่อ
+    function switchMode(mode) {
+        document.getElementById('btn-recipe-mode').classList.remove('active');
+        document.getElementById('btn-manual-mode').classList.remove('active');
+        
+        document.getElementById('recipeView').style.display = 'none';
+        document.getElementById('manualView').style.display = 'none';
+        document.getElementById('recipeTools').style.display = 'none';
+
+        if (mode === 'recipe') {
+            document.getElementById('btn-recipe-mode').classList.add('active');
+            document.getElementById('recipeView').style.display = 'block';
+            document.getElementById('recipeTools').style.display = 'block';
+        } else if (mode === 'manual') {
+            document.getElementById('btn-manual-mode').classList.add('active');
+            document.getElementById('manualView').style.display = 'block';
         }
-    });
-
-    function getFatTag(type) {
-        if (type === 'oil') return '<span class="tag tag-oil">🛢️ น้ำมัน</span>';
-        if (type === 'butter-solid') return '<span class="tag tag-butter-solid">🧈 เนยก้อน</span>';
-        if (type === 'butter-melt') return '<span class="tag tag-butter-melt">🧈 เนยละลาย</span>';
-        return '';
-    }
-
-    function getPanTag(type) {
-        if (type === 'teppan') return '<span class="tag tag-teppan">🍳 เตาเทปัน</span>';
-        if (type === 'small-pan') return '<span class="tag tag-pan">🥘 กระทะเล็ก</span>';
-        if (type === 'both') return '<span class="tag tag-teppan">🍳 เตาเทปัน</span> <span class="tag tag-pan">🥘 แยกกระทะเล็ก</span>';
-        if (type === 'Pan-stir') return '<span class="tag tag-stir">🍳 กระทะสำหรับผัด</span>';
-        return '';
     }
 
     function renderMenus() {
         const grid = document.getElementById('menuGrid');
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        if (!grid) return;
+        const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase();
         grid.innerHTML = '';
 
-        const filteredMenus = globalMenus.filter(menu => 
-            menu.name.toLowerCase().includes(searchTerm) || 
-            menu.instructions.toLowerCase().includes(searchTerm)
-        );
+        const filteredMenus = globalMenus.filter(menu => {
+            if (!menu || !menu.name) return false;
+            if (currentFilter.field === 'panType' && menu.panType !== currentFilter.value) {
+                if (!(currentFilter.value === 'teppan' && menu.panType === 'both')) return false;
+            }
+            if (currentFilter.field === 'fatType' && menu.fatType !== currentFilter.value) return false;
+            return (menu.name || '').toLowerCase().includes(searchTerm) || (menu.instructions || '').toLowerCase().includes(searchTerm);
+        });
 
         if (filteredMenus.length === 0) {
-            grid.innerHTML = '<p style="text-align:center;color:var(--text-muted);">❌ ไม่พบเมนูที่ค้นหา</p>';
+            grid.innerHTML = '<p style="text-align:center; font-size:15px; color:var(--text-muted); margin-top:30px;">❌ ไม่พบรายการสูตรอาหาร</p>';
             return;
         }
 
         filteredMenus.forEach(menu => {
-            let cutHtml = menu.cutMethod ? `<span class="tag tag-cut">🔪 ${menu.cutMethod}</span>` : '';
+            const safeName = menu.name || 'ไม่ระบุชื่อ';
+            const safeInstructions = (menu.instructions || '').replace(/-/g, '•');
+            const cutHtml = menu.cutMethod ? `<div class="badge bg-cut">🔪 การตัดแต่ง: ${menu.cutMethod}</div>` : '';
+            let fatBadge = menu.fatType === 'oil' ? '<span class="badge bg-oil">🛢️ น้ำมัน</span>' : (menu.fatType !== 'none' && menu.fatType ? '<span class="badge bg-butter">🧈 เนย</span>' : '');
+            let panBadge = menu.panType === 'teppan' ? '<span class="badge bg-teppan">🍳 เตาเทปัน</span>' : (menu.panType === 'small-pan' ? '<span class="badge bg-pan">🥘 กระทะเล็ก</span>' : (menu.panType === 'both' ? '<span class="badge bg-teppan">🍳 เตาเทปัน</span> <span class="badge bg-pan">🥘 แยกกระทะ</span>' : ''));
+
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
-                <div class="card-header">
-                    <h3 class="card-title">${menu.name}</h3>
-                    <div class="card-buttons">
-                        <button class="edit-btn" onclick="editMenu('${menu.id}')">แก้ไข</button>
-                        <button class="delete-btn" onclick="deleteMenu('${menu.id}')">ลบ ✕</button>
-                    </div>
+                <div class="card-header"><h3 class="card-title">${safeName}</h3></div>
+                <div class="card-indicators">${fatBadge}${panBadge}${cutHtml}</div>
+                <div class="method-text">${safeInstructions}</div>
+                <div class="card-footer">
+                    <button class="btn-text-edit" onclick="editMenu('${menu.id}')">✏️ แก้ไข</button>
+                    <button class="btn-text-delete" onclick="deleteMenu('${menu.id}')">🗑️ ลบ</button>
                 </div>
-                <div class="tags">${getFatTag(menu.fatType)}${getPanTag(menu.panType)}${cutHtml}</div>
-                <div class="method-text">${menu.instructions}</div>
             `;
             grid.appendChild(card);
         });
     }
 
+    function handleSearchKeyUp() {
+        const val = document.getElementById('searchInput').value;
+        document.getElementById('clearSearchBtn').style.display = val ? 'flex' : 'none';
+        renderMenus();
+    }
+    function clearSearch() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('clearSearchBtn').style.display = 'none';
+        renderMenus();
+    }
+    function setQuickFilter(field, value = null) {
+        currentFilter.field = field; currentFilter.value = value;
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+        if (field === 'all') document.getElementById('filter-all').classList.add('active');
+        else if (field === 'panType') document.getElementById(`filter-${value}`).classList.add('active');
+        else if (field === 'fatType') document.getElementById('filter-oil').classList.add('active');
+        renderMenus();
+    }
     function openModal(isEdit = false) { 
         document.getElementById('menuModal').style.display = 'flex'; 
-        if (!isEdit) {
-            document.getElementById('menuForm').reset(); 
-            document.getElementById('editMenuId').value = '';
-            document.getElementById('modalTitle').innerText = '📝 เพิ่มเมนูใหม่';
-            document.getElementById('btnSaveSubmit').innerText = 'บันทึกขึ้นระบบ';
-        }
+        if (!isEdit) { document.getElementById('menuForm').reset(); document.getElementById('editMenuId').value = ''; document.getElementById('modalTitle').innerText = '📝 เพิ่มสูตรอาหารใหม่'; }
     }
-
-    function closeModal() { 
-        document.getElementById('menuModal').style.display = 'none'; 
-        document.getElementById('menuForm').reset();
-        document.getElementById('editMenuId').value = '';
-    }
-
+    function closeModal() { document.getElementById('menuModal').style.display = 'none'; }
     function editMenu(firebaseId) {
         const menu = globalMenus.find(m => m.id === firebaseId);
         if (!menu) return;
-        
         document.getElementById('editMenuId').value = menu.id;
-        document.getElementById('menuName').value = menu.name;
+        document.getElementById('menuName').value = menu.name || '';
         document.getElementById('fatType').value = menu.fatType || 'none';
         document.getElementById('panType').value = menu.panType || 'none';
         document.getElementById('cutMethod').value = menu.cutMethod || '';
-        document.getElementById('instructions').value = menu.instructions;
-        
-        document.getElementById('modalTitle').innerText = '✏️ แก้ไขสูตรอาหาร';
-        document.getElementById('btnSaveSubmit').innerText = 'อัปเดตข้อมูล';
-        
+        document.getElementById('instructions').value = menu.instructions || '';
+        document.getElementById('modalTitle').innerText = '✏️ แก้ไขสูตร';
         openModal(true);
     }
-
     function saveMenu() {
         const id = document.getElementById('editMenuId').value;
-        const name = document.getElementById('menuName').value;
+        const name = document.getElementById('menuName').value.trim();
         const fatType = document.getElementById('fatType').value;
         const panType = document.getElementById('panType').value;
-        const cutMethod = document.getElementById('cutMethod').value;
-        const instructions = document.getElementById('instructions').value;
-
+        const cutMethod = document.getElementById('cutMethod').value.trim();
+        const instructions = document.getElementById('instructions').value.trim();
         if (!name || !instructions) return alert("กรุณากรอกข้อมูลให้ครบถ้วน");
-
         const menuData = { name, fatType, panType, cutMethod, instructions };
-
-        if (id) {
-            menuRef.child(id).update(menuData).then(() => {
-                closeModal();
-            });
-        } else {
-            menuRef.push(menuData).then(() => {
-                closeModal();
-            });
-        }
+        if (id) menuRef.child(id).update(menuData).then(() => closeModal());
+        else menuRef.push(menuData).then(() => closeModal());
     }
-
-    function deleteMenu(firebaseId) {
-        if (confirm("ต้องการลบเมนูนี้ออกจากระบบส่วนกลางใช่หรือไม่? (พนักงานคนอื่นจะถูกลบไปด้วย)")) {
-            menuRef.child(firebaseId).remove();
-        }
-    }
+    function deleteMenu(firebaseId) { if (confirm("ต้องการลบสูตรอาหารนี้ใช่ไหม?")) menuRef.child(firebaseId).remove(); }
 </script>
 </body>
 </html>
