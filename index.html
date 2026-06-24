@@ -12,7 +12,681 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
+    <!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>COCO - ระบบคู่มือประกอบอาหารพนักงาน</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
     <style>
+        /* 🎨 CoCoIchibanya UI Palette Theme */
+        :root {
+            --primary-dark: #6B3F24;    /* สีน้ำตาลเข้มตราโลโก้ CoCo */
+            --accent-gold: #F5B324;     /* สีเหลืองทองแกงกะหรี่ */
+            --accent-dark: #D48806;     /* สีทองเข้มสำหรับ Action */
+            --success-emerald: #059669;
+            --bg-light: #FFF9F0;        /* พื้นหลังสีครีมอ่อน นวลตา สบายตาคนหน้าเตา */
+            --card-inner: #FDFBF7;      /* สีครีมสว่างในกล่องข้อความ */
+            --text-main: #4A3524;       /* สีน้ำตาลเกือบดำเพื่อให้อ่านง่าย */
+            --text-muted: #8C7662;      /* สีน้ำตาลหม่นสำหรับข้อมูลรอง */
+        }
+
+        * { box-sizing: border-box; font-family: 'Prompt', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            margin: 0; padding: 0;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
+
+        /* 🔒 UI หน้าจอระบบล็อกรหัสผ่าน */
+        #loginBlock {
+            display: flex; align-items: center; justify-content: center;
+            min-height: 100vh; background: var(--primary-dark);
+            padding: 20px; position: fixed; top: 0; left: 0; width: 100%; z-index: 9999;
+        }
+        .login-box {
+            background: #FFFFFF; color: var(--primary-dark); padding: 35px 25px;
+            border-radius: 24px; width: 100%; max-width: 360px; text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        .login-input {
+            width: 100%; padding: 14px; border: 2px solid #E2E8F0; border-radius: 12px;
+            font-size: 18px; font-weight: 700; text-align: center; outline: none;
+            margin-top: 15px; margin-bottom: 15px; letter-spacing: 2px; transition: border-color 0.2s;
+        }
+        .login-input:focus { border-color: var(--accent-gold); }
+        .login-btn {
+            width: 100%; background: var(--accent-gold); color: var(--primary-dark); border: none;
+            padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer;
+            transition: opacity 0.2s; box-shadow: 0 4px 10px rgba(245, 179, 36, 0.3);
+        }
+        .login-btn:active { opacity: 0.9; }
+
+        /* 📌 Header ดีไซน์คงที่ */
+        .header-sticky {
+            position: sticky; top: 0;
+            background: rgba(107, 63, 36, 0.96); /* ใช้สีน้ำตาลแบรนด์ทำโปร่งแสง */
+            backdrop-filter: blur(8px);
+            padding: 14px 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-bottom: 2px solid var(--accent-gold);
+            z-index: 100;
+        }
+
+        /* ปุ่มสลับโหมด */
+        .mode-switcher {
+            display: flex; background: #54311B; padding: 4px; border-radius: 14px; margin-bottom: 12px; gap: 4px;
+        }
+        .mode-btn {
+            flex: 1; padding: 11px; border-radius: 10px; border: none;
+            font-size: 15px; font-weight: 700; cursor: pointer; background: transparent; color: #D1C5BD; transition: all 0.2s ease;
+            text-align: center;
+        }
+        .mode-btn.active {
+            background: var(--accent-gold); color: var(--primary-dark);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        /* ส่วนเครื่องมือค้นหา */
+        .search-wrapper { position: relative; margin-bottom: 10px; }
+        .search-bar {
+            width: 100%; padding: 14px 45px 14px 16px; border: 1px solid #E2E8F0;
+            border-radius: 12px; font-size: 16px; font-weight: 600; outline: none; background-color: #FFFFFF;
+            color: var(--text-main);
+        }
+        .search-bar:focus { border-color: var(--accent-gold); }
+        .search-clear {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            background: #E2E8F0; color: #475569; border: none; border-radius: 50%;
+            width: 24px; height: 24px; font-size: 12px; display: none; align-items: center; justify-content: center; font-weight: bold; cursor: pointer;
+        }
+
+        .filter-scroll { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+        .filter-scroll::-webkit-scrollbar { display: none; }
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.15); color: #FFF; border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px 14px; border-radius: 30px; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer;
+        }
+        .filter-btn.active { background: var(--accent-gold); color: var(--primary-dark); border-color: var(--accent-gold); }
+
+        /* -------------------------------------
+            📜 UI หน้าข้อมูลพื้นฐานร้าน
+        ------------------------------------- */
+        #manualView { display: none; padding-bottom: 60px; }
+        .manual-card { background: white; border-radius: 16px; padding: 22px 18px; margin-bottom: 16px; border: 1px solid #E9E1D7; box-shadow: 0 4px 15px rgba(107,63,36,0.03); }
+        .manual-title { font-size: 19px; font-weight: 800; color: var(--primary-dark); margin-top: 0; margin-bottom: 14px; border-left: 4px solid var(--accent-gold); padding-left: 10px; }
+        .manual-text { font-size: 16px; color: var(--text-main); line-height: 1.7; }
+        
+        .manual-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 15px; }
+        .manual-table th { background: #FAF5EF; color: var(--primary-dark); font-weight: 700; text-align: left; padding: 10px; border-bottom: 2px solid #E9E1D7; }
+        .manual-table td { padding: 10px; border-bottom: 1px solid #F6EFE6; color: var(--text-main); font-weight: 500; }
+        
+        .script-box { background: var(--card-inner); border-radius: 10px; padding: 12px 14px; border: 1px solid #E9E1D7; margin-top: 10px; }
+        .script-q { font-weight: 700; color: #B45309; font-size: 15px; }
+
+        /* -------------------------------------
+            🍳 UI การ์ดสูตรอาหาร
+        ------------------------------------- */
+        #recipeView { padding-bottom: 80px; }
+        .menu-grid { display: flex; flex-direction: column; gap: 16px; }
+        
+        .card { background: #FFFFFF; border-radius: 16px; box-shadow: 0 4px 15px rgba(107,63,36,0.04); border: 1px solid #E9E1D7; overflow: hidden; position: relative; }
+        /* ถ้าปักหมุด ให้เพิ่มกรอบสีทองเด่นขึ้นมา */
+        .card.is-pinned { border: 2px solid var(--accent-gold); background: #FFFDF9; }
+        
+        .card-header { padding: 16px 16px 10px 16px; display: flex; justify-content: space-between; align-items: flex-start; }
+        .card-title { font-size: 22px; font-weight: 800; color: var(--primary-dark); margin: 0; flex: 1; padding-right: 10px; }
+        
+        /* สัญลักษณ์ปักหมุดเล็กๆ ด้านบนการ์ด */
+        .pin-badge { font-size: 18px; color: var(--accent-gold); background: #FEF3C7; padding: 4px 8px; border-radius: 8px; font-weight: bold; }
+
+        .card-indicators { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 14px 16px; }
+        .badge { padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: 700; border: 1px solid transparent; }
+        .bg-teppan { background: #F0FDF4; color: #166534; border-color: #DCFCE7; }
+        .bg-pan { background: #F8FAFC; color: #334155; border-color: #E2E8F0; }
+        .bg-oil { background: #FFFBEB; color: #92400E; border-color: #FEF3C7; }
+        .bg-butter { background: #FFF7ED; color: #9A3412; border-color: #FFEDD5; }
+        .bg-cut { background: #FFF1F2; color: #9F1239; border-color: #FFE4E6; width: 100%; margin-top: 2px; }
+        
+        .method-text { font-size: 18px; line-height: 1.7; color: var(--text-main); font-weight: 500; background: var(--card-inner); padding: 16px; border-top: 1px solid #F6EFE6; white-space: pre-line; }
+        .card-footer { display: flex; justify-content: flex-end; gap: 14px; padding: 10px 16px; background: #FFFFFF; border-top: 1px dashed #E9E1D7; }
+        
+        .btn-text-edit, .btn-text-delete, .btn-text-pin { background: none; border: none; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .btn-text-pin { color: #D48806; }
+        .btn-text-edit { color: #3b82f6; } 
+        .btn-text-delete { color: #ef4444; }
+
+        .fab-add { position: fixed; bottom: 20px; right: 20px; background: var(--primary-dark); color: white; border: none; width: 56px; height: 56px; border-radius: 28px; font-size: 24px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25); border: 2px solid var(--accent-gold); z-index: 100; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); justify-content: center; align-items: flex-end; z-index: 1000; }
+        .modal-content { background: white; width: 100%; max-width: 600px; max-height: 85vh; padding: 20px; border-radius: 22px 22px 0 0; overflow-y: auto; color: var(--text-main); }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; margin-bottom: 4px; font-weight: 700; font-size: 14px; color: var(--primary-dark); }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #E2E8F0; border-radius: 10px; font-size: 15px; outline: none; background: #FFF9F0; color: var(--text-main); }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent-gold); }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-cancel { flex: 1; background: #F1F5F9; color: #475569; border: none; padding: 14px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+        .btn-save { flex: 2; background: var(--primary-dark); color: white; border: 1px solid var(--accent-gold); padding: 14px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+    </style>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+
+<div id="loginBlock">
+    <div class="login-box">
+        <h2 style="margin: 0; font-weight: 800; font-size: 24px; color: var(--primary-dark);">🍛 COCO KITCHEN</h2>
+        <p style="font-size: 14px; color: var(--text-muted); margin: 5px 0 20px 0;">ระบบคู่มือสูตร สำหรับพนักงานสาขา</p>
+        <input type="password" id="passInput" class="login-input" placeholder="รหัสผ่านเข้างาน" onkeyup="if(event.key === 'Enter') verifyPassword()">
+        <button class="login-btn" onclick="verifyPassword()">เข้าสู่ระบบครัว</button>
+        <p id="loginError" style="color: #ef4444; font-size: 14px; font-weight: 700; margin-top: 12px; display: none;">❌ รหัสเข้าใช้งานไม่ถูกต้อง</p>
+    </div>
+</div>
+
+<div id="appBlock" style="display: none;">
+    <div class="header-sticky">
+        <div class="container" style="padding: 0;">
+            <div class="mode-switcher">
+    <button class="mode-btn active" id="btn-recipe-mode" onclick="switchMode('recipe')">📖 คู่มือสูตรอาหาร</button>
+    <button class="mode-btn" id="btn-manual-mode" onclick="switchMode('manual')">📜 ข้อมูลพื้นฐานร้าน</button>
+        </div>
+
+            <div id="recipeTools">
+                <div class="search-wrapper">
+                    <input type="text" id="searchInput" class="search-bar" placeholder="🔍 ค้นหาเมนูแกงกะหรี่, ของทอด, วิธีปรุง..." onkeyup="handleSearchKeyUp()">
+                    <button id="clearSearchBtn" class="search-clear" onclick="clearSearch()">✕</button>
+                </div>
+                <div class="filter-scroll">
+                    <button class="filter-btn active" id="filter-all" onclick="setQuickFilter('all')">ทั้งหมด</button>
+                    <button class="filter-btn" id="filter-teppan" onclick="setQuickFilter('panType', 'teppan')">🍳 เตาเทปัน</button>
+                    <button class="filter-btn" id="filter-small-pan" onclick="setQuickFilter('panType', 'small-pan')">🥘 กระทะเล็ก</button>
+                    <button class="filter-btn" id="filter-oil" onclick="setQuickFilter('fatType', 'oil')">🛢️ น้ำมัน</button>
+                    <button class="filter-btn" id="filter-butter" onclick="setQuickFilter('fatType', 'butter-solid')">🧈 เนย</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <div id="recipeView">
+            <div class="menu-grid" id="menuGrid">
+                <p style="text-align: center; color: var(--text-muted); font-size: 16px; margin-top: 40px;">⏳ กำลังเชื่อมต่อสูตรอาหารจากฐานข้อมูล...</p>
+            </div>
+            <button class="fab-add" id="fabAddBtn" onclick="openModal()">+</button>
+        </div>
+
+        <div id="manualView" style="display: none;"></div>
+    </div>
+</div>
+
+<div class="modal" id="menuModal">
+    <div class="modal-content">
+        <h2 id="modalTitle" style="margin-top:0; font-size:18px; font-weight:800; color:var(--primary-dark);">📝 บันทึกข้อมูลสูตรอาหาร</h2>
+        <form id="menuForm" onsubmit="event.preventDefault(); saveMenu();">
+            <input type="hidden" id="editMenuId">
+            <div class="form-group"><label>ชื่อเมนูอาหาร</label><input type="text" id="menuName" required></div>
+            <div class="form-group">
+                <label>การเลือกไขมันพื้นฐาน</label>
+                <select id="fatType">
+                    <option value="none">- ไม่ระบุไขมัน -</option>
+                    <option value="oil">🛢️ น้ำมัน</option>
+                    <option value="butter-solid">🧈 เนยก้อน / เนยละลาย</option>
+		    <option value="oil-then-butter">น้ำมัน ➡️ เนย</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>ลักษณะสถานีเตาที่ปรุง</label>
+                <select id="panType">
+                    <option value="none">- ไม่ระบุสถานีเตา -</option>
+                    <option value="teppan">🍳 เตาเทปันเหล็ก</option>
+                    <option value="small-pan">🥘 ปรุงแยกในกระทะเล็ก</option>
+                    <option value="both">🍳 เตาเทปัน + 🥘 ปรุงแยกในกระทะเล็ก</option>
+                </select>
+            </div>
+            <div class="form-group"><label>แนวทางการหั่น / สเปกจัดเสิร์ฟ</label><input type="text" id="cutMethod" placeholder="เช่น หั่นแนวทแยง 4 ชิ้นเท่ากัน"></div>
+            <div class="form-group"><label>ขั้นตอนวิธีทำและสัดส่วนส่วนผสม</label><textarea id="instructions" rows="5" required></textarea></div>
+            <div class="modal-actions">
+                <buttontype="submit"id="btnSaveSubmit"class="btn-save">บันทึกข้อมูลสูตร</button>
+                <button type="button" id="btnSaveSubmit" class="btn-save" onclick="saveMenu()">บันทึกข้อมูลสูตร</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+	const Toast = Swal.mixin({
+        toast: true,
+        position: 'bottom-end',
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+    });
+    // ⚙️ FIREBASE CONFIG
+    const firebaseConfig = {
+        apiKey: "AIzaSyAkLEk_ihyEpqcunK1pVZ1O7L5GCMU2WbU",
+        authDomain: "coco-menu-7c395.firebaseapp.com",
+        databaseURL: "https://coco-menu-7c395-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "coco-menu-7c395",
+        storageBucket: "coco-menu-7c395.firebasestorage.app",
+        messagingSenderId: "690988825597",
+        appId: "1:690988825597:web:eab946a1304eb0ab113794"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const menuRef = database.ref('restaurant_menus');
+
+    let globalMenus = [];
+    let currentFilter = { field: 'all', value: null };
+
+    const manualContentHTML = `
+        <div class="manual-card">
+            <div class="manual-title">📢 MOTTO </div>
+            <div class="manual-text">
+                พื้นฐานความสำเร็จในการบริการ:
+                <ul>
+                    <li><strong>NIKONIKO :</strong> (รอยยิ้ม)</li>
+                    <li><strong>KIBIKIBI :</strong> (ความกระตือรือร้น)</li>
+                    <li><strong>HAKIHAKI :</strong> (การพูดชัดเจนด้วยถ้อยคำสุภาพอ่อนน้อม)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="manual-card">
+            <div class="manual-title">⚖️ มาตรฐานตารางการชั่งข้าวฟูจิฮิคาริ</div>
+            <div class="manual-text">
+                ปริมาณ ข้าว/ปริมาณ ซอส:
+                <table class="manual-table">
+                    <thead>
+                        <tr><th>ไซส์ข้าว</th><th>น้ำหนักมาตรฐาน</th><th>น้ำหนักซอส (S)</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>ข้าวนิ (N)</strong></td><td>150 กรัม</td><td>132 กรัม</td></tr>
+                        <tr><td><strong>ข้าวซัง (S)</strong></td><td>230 กรัม</td><td>190 กรัม</td></tr>
+                        <tr><td><strong>ข้าวย้ง (Y)</strong></td><td>350 กรัม</td><td>260 กรัม</td></tr>
+                        <tr><td><strong>ข้าวโกะ (K)</strong></td><td>450 กรัม</td><td>330 กรัม(จานใหญ่)</td></tr>
+                        <tr><td><strong>ข้าวโระ (R)</strong></td><td>550 กรัม</td><td>400 กรัม</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="manual-card">
+            <div class="manual-title">🥩 ส่วนของเนื้อสัตว์</div>
+            <div class="manual-text">
+                ส่วนต่างๆของวัตถุดิบ:
+                <ul>
+                    <li><strong>หมูทอด:</strong> 🍽จะเป็นส่วน <strong>"สันนอก"</strong></li>
+                    <li><strong>หมูคุโรบุตะ:</strong> 🍽จะเป็นส่วน <strong>"สันคอ"</strong></li>
+                    <li><strong>ไก่:</strong> 🍽จะเป็นส่วน <strong>"สะโพกไก่"</strong></li>
+                    <li><strong>เนื้อลูกเต๋า:</strong> 🍽จะเป็นส่วน <strong>"สันใน"</strong></li>
+                    <li><strong>เนื้อสไลด์:</strong> 🍽จะเป็นส่วน <strong>"สันคอ"</strong></li>
+                    <li><strong>เกี๊ยวซ่า:</strong> 🍽ใส้ <strong>"ไก่"</strong></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="manual-card">
+            <div class="manual-title">🍚 ข้อมูล ข้าว ตรา ฟูจิฮิคาริ</div>
+            <div class="manual-text">
+                อันนี้ออกสอบแน่พี่น้องเอ้ย :
+                <div class="script-box">
+                    <div class="script-q"> 🍚 ข้าว ตรา ฟูจิฮิคาริ : "สายพันธุ์ ซาซานิชิกิ/Sasanishiki ปลูกที่เชียงราย"</div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 🕒 ตรวจสอบว่า Session หมดอายุหรือยัง (30 วัน)
+    function isAuthValid() {
+        const isAuthenticated = localStorage.getItem('coco_authenticated') === 'true';
+        const loginTime = localStorage.getItem('coco_login_time');
+        if (!isAuthenticated || !loginTime) return false;
+        const now = new Date().getTime();
+        const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+        if (now - parseInt(loginTime) > thirtyDaysInMs) {
+            localStorage.removeItem("coco_authenticated");
+	        localStorage.removeItem("coco_login_time");
+            return false;
+        }
+        return true;
+    }
+
+    function checkAuth() {
+        if (isAuthValid()) {
+            document.getElementById('loginBlock').style.display = 'none';
+            document.getElementById('appBlock').style.display = 'block';
+            document.getElementById('manualView').innerHTML = manualContentHTML;
+            startFirebaseListener();
+        } else {
+            document.getElementById('loginBlock').style.display = 'flex';
+            document.getElementById('appBlock').style.display = 'none';
+        }
+    }
+
+    function verifyPassword() {
+    const inputPass = document.getElementById('passInput').value;
+
+    firebase.database().ref("settings/password").once("value")
+    .then((snapshot) => {
+
+        const realPassword = snapshot.val();
+
+        if (inputPass === realPassword) {
+
+            localStorage.setItem("coco_authenticated", "true");
+            localStorage.setItem("coco_login_time", Date.now());
+
+            checkAuth();
+
+        } else {
+
+            const errorTxt = document.getElementById("loginError");
+
+            errorTxt.style.display = "block";
+
+            document.getElementById("passInput").value = "";
+
+            setTimeout(() => {
+                errorTxt.style.display = "none";
+            },2500);
+
+        }
+
+    });
+}
+
+    window.addEventListener('DOMContentLoaded', checkAuth);
+
+    function loadCachedData() {
+        if (!isAuthValid()) return;
+        try {
+            const cached = localStorage.getItem('coco_menus_cache');
+            if (cached) { globalMenus = JSON.parse(cached); renderMenus(); }
+        } catch (e) { console.error(e); }
+    }
+
+    function startFirebaseListener() {
+        loadCachedData();
+        menuRef.on('value', (snapshot) => {
+            try {
+                if (!isAuthValid()) { menuRef.off(); return; }
+                const data = snapshot.val();
+                globalMenus = [];
+                if (data) {
+                    Object.keys(data).forEach(key => { if (data[key]) globalMenus.push({ id: key, ...data[key] }); });
+                    localStorage.setItem('coco_menus_cache', JSON.stringify(globalMenus));
+                }
+                renderMenus();
+            } catch (err) { loadCachedData(); }
+        }, (error) => { loadCachedData(); });
+    }
+
+    function switchMode(mode) {
+        if (!isAuthValid()) return;
+        document.getElementById('btn-recipe-mode').classList.remove('active');
+        document.getElementById('btn-manual-mode').classList.remove('active');
+        document.getElementById('recipeView').style.display = 'none';
+        document.getElementById('manualView').style.display = 'none';
+        document.getElementById('recipeTools').style.display = 'none';
+	document.getElementById('btn-snack-mode')?.classList.remove('active');
+
+        if (mode === 'recipe') {
+            document.getElementById('btn-recipe-mode').classList.add('active');
+            document.getElementById('recipeView').style.display = 'block';
+            document.getElementById('recipeTools').style.display = 'block';
+        } else if (mode === 'manual') {
+            document.getElementById('btn-manual-mode').classList.add('active');
+            document.getElementById('manualView').style.display = 'block';
+	        document.getElementById('snackView').style.display = 'none';
+        }
+    }
+
+    // 📌 ฟังก์ชันสั่ง สลับสถานะปักหมุด (อัปเดตลง Firebase)
+    function togglePin(firebaseId, currentStatus) {
+        if (!isAuthValid()) return alert("กรุณาเข้าสู่ระบบใหม่");
+        menuRef.child(firebaseId).update({ pinned: !currentStatus });
+    }
+
+    function renderMenus() {
+        const grid = document.getElementById('menuGrid');
+        if (!grid) return;
+        if (!isAuthValid()) { grid.innerHTML = '<p style="text-align:center; color:var(--text-muted);">🔒 หมดเวลาการเข้าใช้งาน</p>'; return; }
+
+    const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+    grid.innerHTML = '';
+
+        // 🔍 1. อัปเกรดระบบ Search ค้นหาครบทุกฟิลด์ (ชื่อ, วิธีทำ, วิธีหั่น, เนย/น้ำมัน, เตา)
+    let filteredMenus = globalMenus.filter(menu => {
+        if (!menu || !menu.name) return false;
+        if (currentFilter.field === 'panType' && menu.panType !== currentFilter.value) {
+            if (!(currentFilter.value === 'teppan' && menu.panType === 'both')) return false;
+        }
+        if (currentFilter.field === 'fatType') {
+    if (currentFilter.value === 'oil' && menu.fatType !== 'oil' && menu.fatType !== 'oil-then-butter') return false;
+    if (currentFilter.value === 'butter-solid' && menu.fatType !== 'butter-solid' && menu.fatType !== 'oil-then-butter') return false;
+}
+        
+        return (
+            (menu.name || '').toLowerCase().includes(searchTerm) || 
+            (menu.instructions || '').toLowerCase().includes(searchTerm) ||
+            (menu.cutMethod || '').toLowerCase().includes(searchTerm) ||
+            (menu.fatType || '').toLowerCase().includes(searchTerm) ||
+            (menu.panType || '').toLowerCase().includes(searchTerm)
+        );
+    });
+
+        // 🔀 2. อัปเกรดระบบ Sort: ตัวปักหมุดขึ้นก่อน -> ตามด้วยเรียงตามตัวอักษร ก-ฮ เสมอ
+    filteredMenus.sort((a, b) => {
+        const aPinned = a.pinned ? 1 : 0;
+        const bPinned = b.pinned ? 1 : 0;
+
+        if (bPinned !== aPinned) {
+            return bPinned - aPinned; 
+        }
+        
+        const nameA = a.name || "";
+        const nameB = b.name || "";
+        return nameA.localeCompare(nameB, 'th');
+    });
+
+        filteredMenus.forEach(menu => {
+            const isPinned = !!menu.pinned;
+            const safeName = menu.name || 'ไม่ระบุชื่อ';
+            const safeInstructions = menu.instructions || "";
+            const cutHtml = menu.cutMethod ? `<div class="badge bg-cut">🔪 การตัดแต่ง: ${menu.cutMethod}</div>` : '';
+            let fatBadge = '';
+        if (menu.fatType === 'oil') {
+            fatBadge = '<span class="badge bg-oil">🛢️ น้ำมัน</span>';
+        } else if (menu.fatType === 'butter-solid') {
+            fatBadge = '<span class="badge bg-butter">🧈 เนย</span>';
+        } else if (menu.fatType === 'oil-then-butter') {
+            // โชว์ 2 ป้ายติดกันไปเลยให้พนักงานในครัวเห็นชัดๆ
+            fatBadge = '<span class="badge bg-oil">🛢️ น้ำมัน</span> ➡️ <span class="badge bg-butter">🧈 เนย</span>'; 
+        }
+            let panBadge = menu.panType === 'teppan' ? '<span class="badge bg-teppan">🍳 เตาเทปัน</span>' : (menu.panType === 'small-pan' ? '<span class="badge bg-pan">🥘 กระทะเล็ก</span>' : (menu.panType === 'both' ? '<span class="badge bg-teppan">🍳 เตาเทปัน</span> <span class="badge bg-pan">🥘 แยกกระทะ</span>' : ''));
+
+            const card = document.createElement('div');
+            card.className = `card ${isPinned ? 'is-pinned' : ''}`;
+            
+            card.innerHTML = `
+                <div class="card-header">
+                    <h3 class="card-title">${safeName}</h3>
+                    ${isPinned ? '<span class="pin-badge">📌 ปักหมุดไว้</span>' : ''}
+                </div>
+                <div class="card-indicators">${fatBadge}${panBadge}${cutHtml}</div>
+                <div class="method-text">${safeInstructions}</div>
+                <div class="card-footer">
+                    <button class="btn-text-pin" onclick="togglePin('${menu.id}', ${isPinned})">${isPinned ? '📍 ถอนหมุด' : '📌 ปักหมุด'}</button>
+                    <button class="btn-text-edit" onclick="editMenu('${menu.id}')">✏️ แก้ไข</button>
+                    <button class="btn-text-delete" onclick="deleteMenu('${menu.id}')">🗑️ ลบ</button>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function handleSearchKeyUp() {
+        const val = document.getElementById('searchInput').value;
+        document.getElementById('clearSearchBtn').style.display = val ? 'flex' : 'none';
+        renderMenus();
+    }
+    function clearSearch() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('clearSearchBtn').style.display = 'none';
+        renderMenus();
+    }
+    function setQuickFilter(field, value = null) {
+    currentFilter.field = field; currentFilter.value = value;
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    
+    if (field === 'all') {
+        document.getElementById('filter-all').classList.add('active');
+    } else if (field === 'panType') {
+        document.getElementById(`filter-${value}`).classList.add('active');
+    } else if (field === 'fatType') {
+        // 🛑 แก้ไขตรงนี้ครับ: แยกให้ชัดเจนว่าปุ่มไหนคือน้ำมัน ปุ่มไหนคือเนย
+        if (value === 'oil') {
+            document.getElementById('filter-oil').classList.add('active');
+        } else if (value === 'butter-solid') {
+            document.getElementById('filter-butter').classList.add('active');
+        }
+    }
+    
+    renderMenus();
+}
+    function openModal(isEdit = false) { 
+        if (!isAuthValid()) return;
+        document.getElementById('menuModal').style.display = 'flex'; 
+        if (!isEdit) { document.getElementById('menuForm').reset(); document.getElementById('editMenuId').value = ''; document.getElementById('modalTitle').innerText = '📝 เพิ่มสูตรอาหารใหม่'; }
+    }
+    function closeModal() { document.getElementById('menuModal').style.display = 'none'; }
+	function closeModal() {
+    document.getElementById('menuModal').style.display = 'none';
+}
+
+	// ปิด Modal เมื่อกดพื้นที่ด้านนอก
+	window.addEventListener('click', function (e) {
+    	const modal = document.getElementById('menuModal');
+
+    	if (e.target === modal) {
+        closeModal();
+    }
+});
+    function editMenu(firebaseId) {
+        if (!isAuthValid()) return;
+        const menu = globalMenus.find(m => m.id === firebaseId);
+        if (!menu) return;
+        document.getElementById('editMenuId').value = menu.id;
+        document.getElementById('menuName').value = menu.name || '';
+        document.getElementById('fatType').value = menu.fatType || 'none';
+        document.getElementById('panType').value = menu.panType || 'none';
+        document.getElementById('cutMethod').value = menu.cutMethod || '';
+        document.getElementById('instructions').value = menu.instructions || '';
+        document.getElementById('modalTitle').innerText = '✏️ แก้ไขสูตร';
+        openModal(true);
+    }
+    function saveMenu() {
+    if (!isAuthValid()) {
+        Toast.fire({ icon: 'error', title: 'หมดเวลาการเข้าใช้งาน' });
+        return;
+    }
+
+    const id = document.getElementById('editMenuId').value;
+    const name = document.getElementById('menuName').value.trim();
+    const fatType = document.getElementById('fatType').value;
+    const panType = document.getElementById('panType').value;
+    const cutMethod = document.getElementById('cutMethod').value.trim();
+    const instructions = document.getElementById('instructions').value.trim();
+
+    if (!name || !instructions) {
+        Toast.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
+        return;
+    }
+
+    // ⏳ สั่งล็อกปุ่ม และเปลี่ยนข้อความเป็น Saving... ป้องกันการกดซ้ำๆ
+    const btnSave = document.getElementById('btnSaveSubmit');
+    const originalText = btnSave.innerText;
+    btnSave.disabled = true;
+    btnSave.innerText = '⏳ กำลังบันทึกข้อมูล...';
+
+    const menuData = { name, fatType, panType, cutMethod, instructions };
+
+    // ฟังก์ชันคืนค่าสถานะปุ่มเมื่อทำงานเสร็จ
+    const handleSuccess = () => {
+        closeModal();
+        btnSave.disabled = false; 
+        btnSave.innerText = originalText; 
+        Toast.fire({ icon: 'success', title: 'บันทึกสูตรอาหารสำเร็จ!' });
+    };
+
+    const handleError = (error) => {
+        btnSave.disabled = false;
+        btnSave.innerText = originalText;
+        Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: error.message });
+    };
+
+    if (id) {
+        menuRef.child(id).update(menuData).then(handleSuccess).catch(handleError);
+    } else {
+        menuRef.push(menuData).then(handleSuccess).catch(handleError);
+    }
+}
+function deleteMenu(firebaseId) {
+    if (!isAuthValid()) {
+        Toast.fire({
+            icon: 'error',
+            title: 'หมดเวลาการเข้าใช้งาน'
+        });
+        return;
+    }
+
+    Swal.fire({
+        title: 'ลบสูตรอาหาร?',
+        text: 'เมื่อลบแล้วจะไม่สามารถกู้คืนได้',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: '🗑️ ลบ',
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d'
+    }).then((result) => {
+        if (!result.isConfirmed) return;
+
+        menuRef.child(firebaseId).remove()
+            .then(() => {
+                Toast.fire({
+                    icon: 'success',
+                    title: 'ลบสูตรเรียบร้อย'
+                });
+            })
+            .catch(err => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'ลบไม่สำเร็จ',
+                    text: err.message
+                });
+            });
+    });
+}
+</script>
+</body>
+</html><style>
         :root {
             --primary-dark: #6B3F24;  /* Midnight Slate */
             --accent-gold: #F5B324;   /* Rich Gold */
