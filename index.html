@@ -11,6 +11,8 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         :root {
@@ -70,7 +72,6 @@
             z-index: 100;
         }
 
-        /* ปุ่มสลับโหมด 2 ปุ่มแบ่งครึ่งหน้าจอสมมาตรสวยงาม */
         .mode-switcher {
             display: flex; background: #F1F5F9; padding: 4px; border-radius: 14px; margin-bottom: 12px; gap: 4px;
         }
@@ -84,7 +85,6 @@
             box-shadow: 0 4px 10px rgba(15, 23, 42, 0.05);
         }
 
-        /* ส่วนเครื่องมือค้นหา */
         .search-wrapper { position: relative; margin-bottom: 10px; }
         .search-bar {
             width: 100%; padding: 14px 45px 14px 16px; border: 1px solid #E2E8F0;
@@ -106,30 +106,28 @@
         }
         .filter-btn.active { background: var(--primary-dark); color: #FFFFFF; border-color: var(--primary-dark); }
 
-        /* -------------------------------------
-            📜 UI หน้าข้อมูลพื้นฐานร้าน
-        ------------------------------------- */
+        /* 📜 UI หน้าข้อมูลพื้นฐานร้าน */
         #manualView { display: none; padding-bottom: 60px; }
         .manual-card { background: white; border-radius: 16px; padding: 22px 18px; margin-bottom: 16px; border: 1px solid #E2E8F0; box-shadow: 0 4px 15px rgba(0,0,0,0.01); }
         .manual-title { font-size: 19px; font-weight: 800; color: var(--primary-dark); margin-top: 0; margin-bottom: 14px; border-left: 4px solid var(--accent-gold); padding-left: 10px; }
         .manual-text { font-size: 16px; color: #334155; line-height: 1.7; }
-        
         .manual-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 15px; }
         .manual-table th { background: #F8FAFC; color: var(--primary-dark); font-weight: 700; text-align: left; padding: 10px; border-bottom: 2px solid #E2E8F0; }
         .manual-table td { padding: 10px; border-bottom: 1px solid #F1F5F9; color: #334155; font-weight: 500; }
-        
         .script-box { background: var(--card-inner); border-radius: 10px; padding: 12px 14px; border: 1px solid #E7E5E4; margin-top: 10px; }
         .script-q { font-weight: 700; color: var(--accent-gold); font-size: 15px; }
-        .script-a { font-weight: 500; color: #1E293B; margin-top: 2px; font-size: 15px; }
 
-        /* -------------------------------------
-            🍳 UI การ์ดสูตรอาหาร
-        ------------------------------------- */
+        /* 🍳 UI การ์ดสูตรอาหาร */
         #recipeView { padding-bottom: 80px; }
         .menu-grid { display: flex; flex-direction: column; gap: 16px; }
-        .card { background: #FFFFFF; border-radius: 16px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02); border: 1px solid #E2E8F0; overflow: hidden; }
-        .card-header { padding: 16px 16px 10px 16px; }
-        .card-title { font-size: 22px; font-weight: 800; color: var(--primary-dark); margin: 0; }
+        
+        .card { background: #FFFFFF; border-radius: 16px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02); border: 1px solid #E2E8F0; overflow: hidden; position: relative; }
+        /* 📌 ดีไซน์สำหรับเมนูที่ถูกปักหมุด */
+        .card.is-pinned { border: 2px solid var(--accent-gold); background: #FFFDF9; }
+        .pin-badge { font-size: 14px; color: #D48806; background: #FEF3C7; padding: 2px 8px; border-radius: 6px; font-weight: bold; margin-left: 8px; vertical-align: middle; }
+        
+        .card-header { padding: 16px 16px 10px 16px; display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 22px; font-weight: 800; color: var(--primary-dark); margin: 0; flex: 1; }
         .card-indicators { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 14px 16px; }
         .badge { padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: 700; border: 1px solid transparent; }
         .bg-teppan { background: #F0FDF4; color: #166534; border-color: #DCFCE7; }
@@ -138,9 +136,12 @@
         .bg-butter { background: #FFF7ED; color: #9A3412; border-color: #FFEDD5; }
         .bg-cut { background: #FFF1F2; color: #9F1239; border-color: #FFE4E6; width: 100%; margin-top: 2px; }
         .method-text { font-size: 18px; line-height: 1.7; color: #0F172A; font-weight: 500; background: var(--card-inner); padding: 16px; border-top: 1px solid #F1F5F9; white-space: pre-line; }
-        .card-footer { display: flex; justify-content: flex-end; gap: 12px; padding: 8px 16px; background: #FFFFFF; border-top: 1px dashed #E2E8F0; }
-        .btn-text-edit, .btn-text-delete { background: none; border: none; font-size: 13px; font-weight: 700; cursor: pointer; }
-        .btn-text-edit { color: #3b82f6; } .btn-text-delete { color: #ef4444; }
+        .card-footer { display: flex; justify-content: flex-end; gap: 14px; padding: 10px 16px; background: #FFFFFF; border-top: 1px dashed #E2E8F0; }
+        
+        .btn-text-edit, .btn-text-delete, .btn-text-pin { background: none; border: none; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .btn-text-edit { color: #3b82f6; } 
+        .btn-text-delete { color: #ef4444; }
+        .btn-text-pin { color: #D48806; }
 
         .fab-add { position: fixed; bottom: 20px; right: 20px; background: var(--primary-dark); color: white; border: none; width: 56px; height: 56px; border-radius: 28px; font-size: 24px; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.2); z-index: 100; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); justify-content: center; align-items: flex-end; z-index: 1000; }
@@ -150,7 +151,8 @@
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #E2E8F0; border-radius: 10px; font-size: 15px; outline: none; background: #F8FAFC; }
         .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
         .btn-cancel { flex: 1; background: #F1F5F9; color: var(--text-main); border: none; padding: 14px; border-radius: 10px; font-weight: 700; cursor: pointer; }
-        .btn-save { flex: 2; background: var(--primary-dark); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+        .btn-save { flex: 2; background: var(--primary-dark); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-save:disabled { background: #94a3b8; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -183,7 +185,7 @@
                     <button class="filter-btn" id="filter-teppan" onclick="setQuickFilter('panType', 'teppan')">🍳 เตาเทปัน</button>
                     <button class="filter-btn" id="filter-small-pan" onclick="setQuickFilter('panType', 'small-pan')">🥘 กระทะเล็ก</button>
                     <button class="filter-btn" id="filter-oil" onclick="setQuickFilter('fatType', 'oil')">🛢️ น้ำมัน</button>
-                    <button class="filter-btn" id="filter-butter" onclick="setQuickFilter('fatType', 'butter-solid')">🧈 เนย</button>
+                    <button class="filter-btn" id="filter-butter" onclick="setQuickFilter('fatType', 'butter')">🧈 เนย</button> 
                 </div>
             </div>
         </div>
@@ -198,8 +200,7 @@
             <button class="fab-add" id="fabAddBtn" onclick="openModal()">+</button>
         </div>
 
-        <div id="manualView" style="display: none;">
-            </div>
+        <div id="manualView" style="display: none;"></div>
     </div>
 </div>
 
@@ -216,6 +217,7 @@
                     <option value="oil">🛢️ น้ำมัน</option>
                     <option value="butter">🧈 เนยก้อน</option>
                     <option value="Melted butter">🧈 เนยละลาย</option>
+                    <option value="oil-then-butter">🛢️ น้ำมัน ➡️ 🧈 เนย</option>
                 </select>
             </div>
             <div class="form-group">
@@ -238,6 +240,15 @@
 </div>
 
 <script>
+    // 🌟 1. ตั้งค่าระบบแจ้งเตือน (Toast) ไว้ใช้งาน
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'bottom-end',
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true
+    });
+
     // ⚙️ FIREBASE CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyAkLEk_ihyEpqcunK1pVZ1O7L5GCMU2WbU",
@@ -255,7 +266,7 @@
     let globalMenus = [];
     let currentFilter = { field: 'all', value: null };
 
-    // เก็บ Raw HTML ของข้อมูลร้านไว้ในตัวแปร ไม่ให้โผล่ไปที่แท็ก HTML ตั้งแต่แรกเพื่อความปลอดภัย
+    // ข้อมูลร้านค้า (ซ่อนไว้ใน Script)
     const manualContentHTML = `
         <div class="manual-card">
             <div class="manual-title">📢 MOTTO </div>
@@ -314,21 +325,30 @@
         </div>
     `;
 
-    // 🔒 ฟังก์ชันตรวจสอบสิทธิ์และควบคุมหน้ากากความปลอดภัย
+    // 🕒 ระบบเซสชันล็อกอิน 30 วัน
+    function isAuthValid() {
+        const isAuth = localStorage.getItem('coco_authenticated') === 'true';
+        const loginTime = localStorage.getItem('coco_login_time');
+        if (!isAuth || !loginTime) return false;
+        
+        const now = new Date().getTime();
+        if (now - parseInt(loginTime) > 30 * 24 * 60 * 60 * 1000) {
+            localStorage.clear();
+            return false;
+        }
+        return true;
+    }
+
     function checkAuth() {
-        if (localStorage.getItem('coco_authenticated') === 'true') {
+        if (isAuthValid()) {
             document.getElementById('loginBlock').style.display = 'none';
             document.getElementById('appBlock').style.display = 'block';
-            
-            // ปลดล็อกข้อมูลพื้นฐานร้านเขียนลง HTML เมื่อล็อกอินผ่านจริงเท่านั้น
             document.getElementById('manualView').innerHTML = manualContentHTML;
-            
-            // เริ่มต้นเชื่อมต่อ Firebase ยืนยันตัวตนผ่านแล้วเท่านั้น
             startFirebaseListener();
         } else {
             document.getElementById('loginBlock').style.display = 'flex';
             document.getElementById('appBlock').style.display = 'none';
-            document.getElementById('manualView').innerHTML = ''; // เคลียร์ทิ้งกรณีไม่ได้ล็อกอิน
+            document.getElementById('manualView').innerHTML = '';
         }
     }
 
@@ -336,7 +356,9 @@
         const inputPass = document.getElementById('passInput').value;
         if (inputPass === 'T50') {
             localStorage.setItem('coco_authenticated', 'true');
+            localStorage.setItem('coco_login_time', new Date().getTime().toString());
             checkAuth();
+            Toast.fire({ icon: 'success', title: 'เข้าสู่ระบบสำเร็จ' });
         } else {
             const errorTxt = document.getElementById('loginError');
             errorTxt.style.display = 'block';
@@ -345,29 +367,21 @@
         }
     }
 
-    // รันกระบวนการตรวจสิทธิ์ทันทีเมื่อโครงสร้างเว็บโหลดเสร็จสิ้น
     window.addEventListener('DOMContentLoaded', checkAuth);
 
     function loadCachedData() {
-        // ดึง Cache ได้ก็ต่อเมื่อล็อกอินแล้วเท่านั้น
-        if (localStorage.getItem('coco_authenticated') !== 'true') return;
+        if (!isAuthValid()) return;
         try {
             const cached = localStorage.getItem('coco_menus_cache');
             if (cached) { globalMenus = JSON.parse(cached); renderMenus(); }
         } catch (e) { console.error(e); }
     }
 
-    // แยกกลุ่มการดึงข้อมูล Firebase ออกมาทำงานเฉพาะคนปลดล็อกแล้วเท่านั้น
     function startFirebaseListener() {
         loadCachedData();
-
         menuRef.on('value', (snapshot) => {
             try {
-                // เช็กซ้ำอีกรอบเพื่อความปลอดภัยสูงสุด
-                if (localStorage.getItem('coco_authenticated') !== 'true') {
-                    menuRef.off(); // สั่งปิดการเชื่อมต่อทันที
-                    return;
-                }
+                if (!isAuthValid()) { menuRef.off(); return; }
                 const data = snapshot.val();
                 globalMenus = [];
                 if (data) {
@@ -379,13 +393,10 @@
         }, (error) => { loadCachedData(); });
     }
 
-    // 🔄 ควบคุมการสลับหน้าจอ 2 โหมดแบบไร้รอยต่อ
     function switchMode(mode) {
-        if (localStorage.getItem('coco_authenticated') !== 'true') return; // บล็อกถ้ายังไม่ล็อกอิน
-        
+        if (!isAuthValid()) return;
         document.getElementById('btn-recipe-mode').classList.remove('active');
         document.getElementById('btn-manual-mode').classList.remove('active');
-        
         document.getElementById('recipeView').style.display = 'none';
         document.getElementById('manualView').style.display = 'none';
         document.getElementById('recipeTools').style.display = 'none';
@@ -400,26 +411,44 @@
         }
     }
 
+    // 📌 ฟังก์ชันสลับการปักหมุด
+    function togglePin(firebaseId, currentStatus) {
+        if (!isAuthValid()) return Toast.fire({ icon: 'error', title: 'กรุณาเข้าสู่ระบบใหม่' });
+        menuRef.child(firebaseId).update({ pinned: !currentStatus });
+    }
+
     function renderMenus() {
         const grid = document.getElementById('menuGrid');
         if (!grid) return;
-        
-        // ถ้าไม่ผ่านการยืนยันตัวตน ไม่เรนเดอร์ข้อมูลใดๆ ทั้งสิ้น
-        if (localStorage.getItem('coco_authenticated') !== 'true') {
-            grid.innerHTML = '<p style="text-align:center; font-size:15px; color:var(--text-muted); margin-top:30px;">🔒 กรุณาเข้าสู่ระบบก่อนใช้งาน</p>';
-            return;
-        }
+        if (!isAuthValid()) { grid.innerHTML = '<p style="text-align:center; color:var(--text-muted);">🔒 หมดเวลาการเข้าใช้งาน</p>'; return; }
 
-        const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase();
+        const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
         grid.innerHTML = '';
 
-        const filteredMenus = globalMenus.filter(menu => {
+        // 🔍 กรองข้อมูล: ค้นหาครอบคลุมทุกส่วน + เช็กน้ำมัน/เนย
+        let filteredMenus = globalMenus.filter(menu => {
             if (!menu || !menu.name) return false;
+            
             if (currentFilter.field === 'panType' && menu.panType !== currentFilter.value) {
                 if (!(currentFilter.value === 'teppan' && menu.panType === 'both')) return false;
             }
-            if (currentFilter.field === 'fatType' && menu.fatType !== currentFilter.value) return false;
-            return (menu.name || '').toLowerCase().includes(searchTerm) || (menu.instructions || '').toLowerCase().includes(searchTerm);
+            // 🌟 เช็กปุ่มกดน้ำมันหรือเนย (ให้แสดงเมนูแบบผสม oil-then-butter ด้วย)
+            if (currentFilter.field === 'fatType') {
+                if (currentFilter.value === 'oil' && menu.fatType !== 'oil' && menu.fatType !== 'oil-then-butter') return false;
+                if (currentFilter.value === 'butter' && menu.fatType !== 'butter' && menu.fatType !== 'Melted butter' && menu.fatType !== 'oil-then-butter') return false;
+            }
+            
+            // ค้นหาข้อความ
+            const searchStr = `${menu.name} ${menu.instructions} ${menu.cutMethod} ${menu.fatType} ${menu.panType}`.toLowerCase();
+            return searchStr.includes(searchTerm);
+        });
+
+        // 🔀 เรียงลำดับ: ปักหมุด (Pinned) ก่อนเสมอ -> แล้วค่อยเรียงตามตัวอักษร ก-ฮ
+        filteredMenus.sort((a, b) => {
+            const aPinned = a.pinned ? 1 : 0;
+            const bPinned = b.pinned ? 1 : 0;
+            if (bPinned !== aPinned) return bPinned - aPinned;
+            return (a.name || "").localeCompare(b.name || "", 'th');
         });
 
         if (filteredMenus.length === 0) {
@@ -428,19 +457,33 @@
         }
 
         filteredMenus.forEach(menu => {
+            const isPinned = !!menu.pinned;
             const safeName = menu.name || 'ไม่ระบุชื่อ';
             const safeInstructions = (menu.instructions || '').replace(/-/g, '•');
             const cutHtml = menu.cutMethod ? `<div class="badge bg-cut">🔪 การตัดแต่ง: ${menu.cutMethod}</div>` : '';
-            let fatBadge = menu.fatType === 'oil' ? '<span class="badge bg-oil">🛢️ น้ำมัน</span>' : (menu.fatType !== 'none' && menu.fatType ? '<span class="badge bg-butter">🧈 เนย</span>' : '');
+            
+            // 🌟 อัปเกรด Badge การใช้ไขมัน
+            let fatBadge = '';
+            if (menu.fatType === 'oil') {
+                fatBadge = '<span class="badge bg-oil">🛢️ น้ำมัน</span>';
+            } else if (menu.fatType === 'butter' || menu.fatType === 'Melted butter') {
+                fatBadge = `<span class="badge bg-butter">🧈 ${menu.fatType === 'butter' ? 'เนยก้อน' : 'เนยละลาย'}</span>`;
+            } else if (menu.fatType === 'oil-then-butter') {
+                fatBadge = '<span class="badge bg-oil">🛢️ น้ำมัน</span> ➡️ <span class="badge bg-butter">🧈 เนย</span>';
+            }
+
             let panBadge = menu.panType === 'teppan' ? '<span class="badge bg-teppan">🍳 เตาเทปัน</span>' : (menu.panType === 'small-pan' ? '<span class="badge bg-pan">🥘 กระทะเล็ก</span>' : (menu.panType === 'both' ? '<span class="badge bg-teppan">🍳 เตาเทปัน</span> <span class="badge bg-pan">🥘 แยกกระทะ</span>' : ''));
 
             const card = document.createElement('div');
-            card.className = 'card';
+            card.className = `card ${isPinned ? 'is-pinned' : ''}`;
             card.innerHTML = `
-                <div class="card-header"><h3 class="card-title">${safeName}</h3></div>
+                <div class="card-header">
+                    <h3 class="card-title">${safeName} ${isPinned ? '<span class="pin-badge">📌</span>' : ''}</h3>
+                </div>
                 <div class="card-indicators">${fatBadge}${panBadge}${cutHtml}</div>
                 <div class="method-text">${safeInstructions}</div>
                 <div class="card-footer">
+                    <button class="btn-text-pin" onclick="togglePin('${menu.id}', ${isPinned})">${isPinned ? '📍 ถอนหมุด' : '📌 ปักหมุด'}</button>
                     <button class="btn-text-edit" onclick="editMenu('${menu.id}')">✏️ แก้ไข</button>
                     <button class="btn-text-delete" onclick="deleteMenu('${menu.id}')">🗑️ ลบ</button>
                 </div>
@@ -459,22 +502,31 @@
         document.getElementById('clearSearchBtn').style.display = 'none';
         renderMenus();
     }
+    
+    // อัปเดต Filter ให้ฉลาดขึ้น
     function setQuickFilter(field, value = null) {
         currentFilter.field = field; currentFilter.value = value;
         document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-        if (field === 'all') document.getElementById('filter-all').classList.add('active');
-        else if (field === 'panType') document.getElementById(`filter-${value}`).classList.add('active');
-        else if (field === 'fatType') document.getElementById('filter-oil').classList.add('active');
+        if (field === 'all') {
+            document.getElementById('filter-all').classList.add('active');
+        } else if (field === 'panType') {
+            document.getElementById(`filter-${value}`).classList.add('active');
+        } else if (field === 'fatType') {
+            if (value === 'oil') document.getElementById('filter-oil').classList.add('active');
+            else document.getElementById('filter-butter').classList.add('active');
+        }
         renderMenus();
     }
+
     function openModal(isEdit = false) { 
-        if (localStorage.getItem('coco_authenticated') !== 'true') return;
+        if (!isAuthValid()) return;
         document.getElementById('menuModal').style.display = 'flex'; 
         if (!isEdit) { document.getElementById('menuForm').reset(); document.getElementById('editMenuId').value = ''; document.getElementById('modalTitle').innerText = '📝 เพิ่มสูตรอาหารใหม่'; }
     }
     function closeModal() { document.getElementById('menuModal').style.display = 'none'; }
+    
     function editMenu(firebaseId) {
-        if (localStorage.getItem('coco_authenticated') !== 'true') return;
+        if (!isAuthValid()) return;
         const menu = globalMenus.find(m => m.id === firebaseId);
         if (!menu) return;
         document.getElementById('editMenuId').value = menu.id;
@@ -486,22 +538,64 @@
         document.getElementById('modalTitle').innerText = '✏️ แก้ไขสูตร';
         openModal(true);
     }
+
+    // ⏳ อัปเดตฟังก์ชันบันทึก: เพิ่ม Loading ป้องกันกดรัวตอนเน็ตช้า
     function saveMenu() {
-        if (localStorage.getItem('coco_authenticated') !== 'true') return alert("ไม่มีสิทธิ์เข้าถึง");
+        if (!isAuthValid()) return Toast.fire({ icon: 'error', title: 'หมดเวลาเข้าใช้งาน' });
+        
         const id = document.getElementById('editMenuId').value;
         const name = document.getElementById('menuName').value.trim();
         const fatType = document.getElementById('fatType').value;
         const panType = document.getElementById('panType').value;
         const cutMethod = document.getElementById('cutMethod').value.trim();
         const instructions = document.getElementById('instructions').value.trim();
-        if (!name || !instructions) return alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+        
+        if (!name || !instructions) return Toast.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
+
+        // ล็อกปุ่มและเปลี่ยนข้อความขณะรอ
+        const btnSave = document.getElementById('btnSaveSubmit');
+        const originalText = btnSave.innerText;
+        btnSave.disabled = true;
+        btnSave.innerText = '⏳ กำลังบันทึกข้อมูล...';
+
         const menuData = { name, fatType, panType, cutMethod, instructions };
-        if (id) menuRef.child(id).update(menuData).then(() => closeModal());
-        else menuRef.push(menuData).then(() => closeModal());
+        
+        const handleSuccess = () => {
+            closeModal();
+            btnSave.disabled = false;
+            btnSave.innerText = originalText;
+            Toast.fire({ icon: 'success', title: 'บันทึกสูตรอาหารเรียบร้อย' });
+        };
+        const handleError = (error) => {
+            btnSave.disabled = false;
+            btnSave.innerText = originalText;
+            Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: error.message });
+        };
+
+        if (id) menuRef.child(id).update(menuData).then(handleSuccess).catch(handleError);
+        else menuRef.push(menuData).then(handleSuccess).catch(handleError);
     }
+
+    // 🗑️ อัปเดตฟังก์ชันลบ: ใช้ Modal ยืนยันสไตล์ COCO
     function deleteMenu(firebaseId) { 
-        if (localStorage.getItem('coco_authenticated') !== 'true') return alert("ไม่มีสิทธิ์เข้าถึง");
-        if (confirm("ต้องการลบสูตรอาหารนี้ใช่ไหม?")) menuRef.child(firebaseId).remove(); 
+        if (!isAuthValid()) return Toast.fire({ icon: 'error', title: 'ไม่มีสิทธิ์เข้าถึง' });
+        
+        Swal.fire({
+            title: 'ยืนยันการลบสูตรอาหาร?',
+            text: "หากลบแล้วจะไม่สามารถกู้คืนได้!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#6B3F24',
+            cancelButtonColor: '#ef4444',
+            confirmButtonText: 'ลบเลย',
+            cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                menuRef.child(firebaseId).remove()
+                    .then(() => Toast.fire({ icon: 'success', title: 'ลบสูตรเรียบร้อย' }))
+                    .catch(err => Swal.fire({ icon: 'error', title: 'ลบไม่สำเร็จ', text: err.message }));
+            }
+        });
     }
 </script>
 </body>
